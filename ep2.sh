@@ -1,3 +1,4 @@
+
 ##################################################################
 # MAC0216 - Técnicas de Programação I (2024)
 # EP2 - Programação em Bash
@@ -5,16 +6,17 @@
 # Nome do(a) aluno(a) 1: Renzo Real Machado Filho
 # NUSP 1: 15486907
 #
-# Nome do(a) aluno(a) 2:
-# NUSP 2:
+# Nome do(a) aluno(a) 2: Gabriel Freire Ushijima
+# NUSP 2: 15453282
 ##################################################################
 
 #!/bin/bash
 
+# Só funciona em sistemas Unix, fds windows
 
 # Salva a 1° entrada da linha de comando
 # O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto contendo as URLs dos arquivos CSV a serem baixados para manipulaçã
-NOME_ARQ=$1 
+NOME_ARQ=$1
 
 DIR="./dados/"
 CODIF="arquivocompleto.csv"
@@ -24,24 +26,48 @@ mkdir -p $DIR
 
 VETOR_URL=()
 
-# Lê o arquivo linha por linha e adiciona a VETOR_URL
-while IFS= read -r linha
-    do
-        VETOR_URL+=("$linha")
-    done < "url.txt"
+function le_input {
+    return
+}
 
-for url in "${VETOR_URL[@]}"
-    do
-        # baixa os arquivos CSV por meio das URLs recebidas e grava-os num diretório especialmente criado pelo programa para armazenar os dados
-        wget -nv $url -P $DIR
+function baixa_arquivo {
+    
+    # $1 -> url do arquivo a ser baixado.
+    # Converte para UTF-8 e salva com o nome final do url.
 
-        # converte a codificação dos arquivos CSV baixados de ISO-8859-1 para UTF8 (para não haver problemas na exibição dos caracteres acentuados)
-        iconv -f ISO-8859-1 -t UTF8 "$DIR$url" -o "$DIR$CODIF" 
+    local nome_arquivo=$(basename $1) # nome do arquivo baixado e.g., "arquivofinal2tri2024.csv"
+    local path_output="$DIR/$nome_arquivo" # path do output
 
+    # Se o arquivo já existe, ent retorna cedo
+    if [ -e $path_output ]; then
+        return
+    fi
+
+    wget -nv $1 -P $DIR # baixa o arquivo
+    iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/temp.txt" # converte para UTF-8 e salva em um arquivo temporário
+    mv "$DIR/temp.txt" "$DIR/$nome_arquivo" # renomeia do nome temporário para o nome final
+}
+
+function baixa_arquivos {
+    
+    # $@ -> urls de arquivos a serem baixados
+    # Tem q passar os urls como argumentos separados, ent vc faz "${vetor[@]}" pra passar os args.
+    # Usa a função `baixa_arquivo`
+
+    for url in "$@"; do
+        echo $url
+        baixa_arquivo $url
     done
+}
+
+# Lê o arquivo linha por linha e adiciona a VETOR_URL
+while IFS= read -r linha; do
+    VETOR_URL+=("$linha")
+done < "url.txt"
+
+baixa_arquivos ${VETOR_URL[@]}
 
 # PROBLEMAS !!!
-# Não está convertendo para UTF8 (aparentemente)
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
 
 
