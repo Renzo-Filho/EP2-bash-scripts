@@ -27,7 +27,12 @@ mkdir -p $DIR
 VETOR_URL=()
 
 function le_input {
-    return
+
+    # Lê o arquivo linha por linha e adiciona a VETOR_URL
+    while IFS= read -r linha; do
+        VETOR_URL+=("$linha")
+    done < "url.txt"
+
 }
 
 function baixa_arquivo {
@@ -55,16 +60,12 @@ function baixa_arquivos {
     # Usa a função `baixa_arquivo`
 
     for url in "$@"; do
-        echo $url
         baixa_arquivo $url
     done
 }
 
-# Lê o arquivo linha por linha e adiciona a VETOR_URL
-while IFS= read -r linha; do
-    VETOR_URL+=("$linha")
-done < "url.txt"
 
+le_input
 baixa_arquivos ${VETOR_URL[@]}
 
 # PROBLEMAS !!!
