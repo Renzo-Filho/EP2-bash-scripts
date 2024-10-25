@@ -22,32 +22,115 @@ NOME_ARQ=$1
 DIR="./dados/"
 CODIF="arquivocompleto.csv"
 
-MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++
-Este programa mostra estatísticas do
-Serviço 156 da Prefeitura de São Paulo
-+++++++++++++++++++++++++++++++++++++++"
+MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++\nEste programa mostra estatísticas do\nServiço 156 da Prefeitura de São Paulo\n+++++++++++++++++++++++++++++++++++++++"
 
 MENSAGEM_ERRO="ERRO: Não há dados baixados.
 Para baixar os dados antes de gerar as estatísticas, use:
     ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
 
+# Ent, o bash é uma bosta e não tem valor de retorno nas funções.
+# Isso é paia pra krl, mas eu ainda assim quero usar funções com valor de retorno.
+# Por esse motivo, vou usar essa variável global como uma forma de retornar valores.
+# É tipo o `rax` em assembly `x86-64`.
+retorno=""
 
-function baixa_arquivo {
-    
-    # $1 -> url do arquivo a ser baixado.
-    # Converte para UTF-8 e salva com o nome final do url.
+function formata_tempo {
 
-    local nome_arquivo=$(basename $1) # nome do arquivo baixado e.g., "arquivofinal2tri2024.csv"
-    local path_output="$DIR/$nome_arquivo" # path do output
+    # $1 -> Tempo em segundos
+    # Retorna o tempo formatado em horas, minutos e segundos
+    # Fica tipo 1h 30m 10s
+    # Se o tempo for menos que 1 hora, ou 1 minuto
+    # ele formata certinho ainda assim, fica 1m 3s ou 10s.
 
-    # Se o arquivo já existe, ent retorna cedo
-    if [ -e $path_output ]; then
-        return
+    local resultado=""
+
+    local segundos=$(( $1 % 60 ))
+    local minutos=$(( ($1 / 60) % 60 ))
+    local horas=$(( ($1 / 3600) % 60 ))
+
+    if [ $minutos -ne 0 ]; then
+
+        if [ $horas -ne 0 ]; then
+            resultado="${horas}h "
+        fi
+
+        resultado="${resultado}${minutos}m "
     fi
 
-    wget -nv $1 -P $DIR # baixa o arquivo
-    iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/temp.txt" # converte para UTF-8 e salva em um arquivo temporário
-    mv "$DIR/temp.txt" "$DIR/$nome_arquivo" # renomeia do nome temporário para o nome final
+    retorno="${resultado}${segundos}s"
+}
+
+function baixa_arquivos {
+
+    # Cria o diretório e baixa os arquivos no
+    # arquivo passado como argumento
+
+    mkdir -p $DIR # Cria o diretório
+
+    # Salva o tempo de início de baixar os arquivos em segundos
+    local tempo_inicio=$(date +%s)
+
+    # Tempo gasto baixando os arquivos em segundos.
+    # Isso n conta o tempo pra converter os arquivos.
+    # A diferença é de segundos, mas acho q tem q ter aq.
+    local tempo_pra_baixar=0
+
+    # Total em bytes baixados
+    local total_baixado=0
+
+    # Printa a data inicial
+    echo $(date '+%Y-%m-%d %H:%M:%S')
+
+    # Lê o arquivo linha por linha e baixa o arquivo
+    while IFS= read -r linha; do
+
+        local nome_arquivo=$(basename $linha) # nome do arquivo final e.g., "arquivofinal2tri2024.csv"
+        local path_output="$DIR/temp.csv" # path do output, arquivo temporário, será converrtido dps
+
+        # Se o arquivo já existe, ent n faz nada
+        # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
+        # Se pah eu removo dps.
+        
+        #if [ -e $path_output ]; then 
+        #    continue
+        #fi
+        # 137.7, 115.3, 116.7
+
+        local tempo_pra_baixar_inicio=$(date +%s)
+        wget  --no-check-certificate -nv -O $path_output $linha # baixa o arquivo
+        local tempo_pra_baixar_fim=$(date +%s)
+
+        local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
+
+        # stat -c%s em Linux
+        # stat -f%z em macOS
+        local tamanho_arquivo=$(stat -f%z "$DIR/$path_output")
+        local total_baixado=$(( total_baixado + tamanho_arquivo ))
+
+        iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
+
+    done < $NOME_ARQ
+
+    # Salva o tempo final de baixar os arquivos
+    local tempo_fim=$(date +%s)
+
+    # Printa a data final
+    echo "FINALIZADO $(date '+%Y-%m-%d %H:%M:%S')"
+
+    # tempo decorrido total em segundos
+    local tempo_decorrido=$(( tempo_fim - tempo_inicio ))
+
+    formata_tempo $tempo_decorrido
+    echo "Tempo total decorrido: ${retorno}"
+
+    formata_tempo $tempo_pra_baixar
+
+    local total_baixado=$(( total_baixado / 1048576 )) # Converte para MB
+    local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/${tempo_pra_baixar}") # Download speed em MB/s
+
+    local num_arquivos=$(wc -l $NOME_ARQ | awk '{ print $1 }') # Número de arquivos baixados
+
+    echo "Baixados: ${num_arquivos} arquivos, ${total_baixado}M em ${retorno} (${velocidade_download} MB/s)"
 }
 
 function pre_programa {
@@ -64,27 +147,27 @@ function pre_programa {
     # Printa a mensagem inicial
     echo $MENSAGEM_INICIAL
 
-    # Se não passaram nenhum argumento e não tem dados baixados
-    if [ -z $NOME_ARQ ] && [ ! -e $DIR ]; then
-        echo $MENSAGEM_ERRO
+    # Se não passaram nenhum argumento
+    if [ -z $NOME_ARQ ]; then
+
+        # Se não tem dados baixados
+        if [ ! -e $DIR ]; then
+            echo $MENSAGEM_ERRO
+        fi
+
+        return
     fi
 
-    # Se passaram argumentos, mas o arquivo passado não existe
-    if [ ! -z $NOME_ARQ ] && [ ! -e $NOME_ARQ ]; then
+    # Se passaram argumentos, mas o arquivo não existe
+    if [ ! -e $NOME_ARQ ]; then
         echo "ERRO: O arquivo $NOME_ARQ não existe."
+        return
     fi
 
-    # Se passaram argumentos e o arquivo existe
-    if [ ! -z $NOME_ARQ ] && [ -e $NOME_ARQ ]; then
+    # Essa parte só é executada se 
+    # tem argumentos e o arquivo existe.
 
-        mkdir -p $DIR # Cria o diretório
-
-        # Lê o arquivo linha por linha e baixa o arquivo
-        while IFS= read -r linha; do
-            baixa_arquivo $linha
-        done < $NOME_ARQ
-
-    fi
+    baixa_arquivos
 }
 
 # Inicializa o programa, lidando com o input.
@@ -92,6 +175,7 @@ pre_programa
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
+# Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
 
 <<COMENT
 selecionar_arquivo
