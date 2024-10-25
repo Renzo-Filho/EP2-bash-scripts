@@ -116,6 +116,7 @@ function baixa_arquivos {
         local total_baixado=$(( total_baixado + tamanho_arquivo ))
 
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
+        rm "$path_output" # Remove o arquivo temporário
 
     done
 
