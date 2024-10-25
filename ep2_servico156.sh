@@ -26,7 +26,15 @@ MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++\nEste programa mostra 
 MENSAGEM_FINAL="Fim do programa\n+++++++++++++++++++++++++++++++++++++++"
 MENSAGEM_ERRO="ERRO: Não há dados baixados.\nPara baixar os dados antes de gerar as estatísticas, use:\n./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
 
-MENSAGEM_OPERACOES="1) selecionar_arquivo\n2) adicionar_filtro_coluna\n3) limpar_filtros_colunas\n4) mostrar_duracao_media_reclamação\n5) mostrar_ranking_reclamacoes\n6) mostrar_reclamacoes\n7) sair"
+NOMES_OPERACOES=(
+    "selecionar_arquivo"
+    "adicionar_filtro_coluna"
+    "limpar_filtros_colunas"
+    "mostrar_duracao_media_reclamação"
+    "mostrar_ranking_reclamacoes"
+    "mostrar_reclamacoes"
+    "sair"
+)
 
 # Ent, o bash é uma bosta e não tem valor de retorno nas funções.
 # Isso é paia pra krl, mas eu ainda assim quero usar funções com valor de retorno.
@@ -192,26 +200,49 @@ function pre_programa {
     baixa_arquivos
 }
 
+function enumera {
+
+    # Recebe uma quantidade qualquer de argumentos, 
+    # printa eles enumerando a partir de 1, separados em linhas.
+    # Fica tipo: "1) $1\n 2) $2\n ..."
+
+    local index=1
+
+    for item in "$@"; do
+        echo "$index) $item"
+        ((index++))
+    done
+
+}
+
 function selecionar_arquivo {
 
     echo "Escolha uma opção de arquivo:"
         
-    local arquivos_dados=("$DIR"/*) # vetor com todos os arquivos em "./dados/"
-    local i=1 # contador
+    local arquivos_paths=("$DIR"/*) # vetor com todos os paths dos arquivos em "./dados/"
+    local arquivos_nomes=($(basename -a ${arquivos_paths[@]})) # vetor com os nomes dos arquivos em "./dados/"
 
-    # Printa as opções de arquivos na pasta "./dados/" 
-    for arquivo in "${arquivos_dados[@]}"
-        do
-        nome_arquivo=$(basename "$arquivo")
-        echo "$i) $nome_arquivo"
-        ((i++))
-        done
+    enumera "${arquivos_nomes[@]}"
+
+    read -p "" escolha
+
+    local novo_arquivo=${arquivos_nomes[((escolha - 1))]}
+    arquivo_atual="$DIR/$novo_arquivo"
+
+    local num_reclamacoes=$(wc -l < $arquivo_atual | tr -d ' ') # Conta o número de linhas, aka, reclamações
+    ((num_reclamacoes--)) # Desconsidera a primeira linha, q são apenas as colunas
+
+    echo "+++ Arquivo atual: $novo_arquivo"
+    echo "+++ Número de reclamações: $num_reclamacoes"
+    echo "+++++++++++++++++++++++++++++++++++++++"
+    echo "" # Acho q tem q ter essa '\n' tbm
+
 }
 
 function menu_principal {
     
     echo "Escolha uma opção de operação:"
-    echo -e $MENSAGEM_OPERACOES
+    enumera "${NOMES_OPERACOES[@]}"
     
     read -p "" opcao
     echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
