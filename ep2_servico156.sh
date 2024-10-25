@@ -80,6 +80,9 @@ function baixa_arquivos {
     # Total em bytes baixados
     local total_baixado=0
 
+    # numero de arquivos baixados
+    local num_arquivos=0
+
     # Printa a data inicial
     echo $(date '+%Y-%m-%d %H:%M:%S')
 
@@ -103,10 +106,13 @@ function baixa_arquivos {
 
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            local tamanho_arquivo=$(stat -c%s "$path_output") # Funciona em Linux
+        else
+            local tamanho_arquivo=$(stat -f%z $path_output) # Funciona em macOS
+        fi
 
-        local tamanho_arquivo=$(stat -c%s "$path_output") # Funciona em Linux
-        #local tamanho_arquivo=$(stat -f%z $path_output) # Funciona em macOS
-
+        local num_arquivos=$((num_arquivos + 1))
         local total_baixado=$(( total_baixado + tamanho_arquivo ))
 
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
@@ -145,8 +151,6 @@ function baixa_arquivos {
     # Calcula a velocidade de download
     # O `+0.01` é pra n dar erro de divisão por `0` em certos casos.
     local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/(${tempo_pra_baixar} + 0.001)")
-
-    local num_arquivos=$(wc -l $NOME_ARQ | awk '{ print $1 }') # Número de arquivos baixados
 
     echo "Baixados: ${num_arquivos} arquivos, ${total_baixado}M em ${retorno} (${velocidade_download} MB/s)"
 }
@@ -230,6 +234,7 @@ menu
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
 # Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
+# Ta rapidão agora, ta em 8.89MB/s, o site do governo tava zuado
 
 
 <<COMENT
