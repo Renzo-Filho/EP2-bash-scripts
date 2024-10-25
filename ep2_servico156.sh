@@ -91,10 +91,9 @@ function baixa_arquivos {
         # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
         # Se pah eu removo dps.
         
-        #if [ -e $path_output ]; then 
-        #    continue
-        #fi
-        # 137.7, 115.3, 116.7
+        if [ -e $path_output ]; then 
+            continue
+        fi
 
         local tempo_pra_baixar_inicio=$(date +%s)
         wget  --no-check-certificate -nv -O $path_output $linha # baixa o arquivo
