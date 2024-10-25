@@ -15,25 +15,13 @@
 # Só funciona em sistemas Unix, fds windows
 
 # Salva a 1° entrada da linha de comando
-# O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto contendo as URLs dos arquivos CSV a serem baixados para manipulaçã
+# O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto 
+# contendo as URLs dos arquivos CSV a serem baixados para manipulaçã
 NOME_ARQ=$1
 
 DIR="./dados/"
 CODIF="arquivocompleto.csv"
 
-# cria o diretório "./dados/"
-mkdir -p $DIR
-
-VETOR_URL=()
-
-function le_input {
-
-    # Lê o arquivo linha por linha e adiciona a VETOR_URL
-    while IFS= read -r linha; do
-        VETOR_URL+=("$linha")
-    done < "url.txt"
-
-}
 
 function baixa_arquivo {
     
@@ -53,20 +41,49 @@ function baixa_arquivo {
     mv "$DIR/temp.txt" "$DIR/$nome_arquivo" # renomeia do nome temporário para o nome final
 }
 
-function baixa_arquivos {
-    
-    # $@ -> urls de arquivos a serem baixados
-    # Tem q passar os urls como argumentos separados, ent vc faz "${vetor[@]}" pra passar os args.
-    # Usa a função `baixa_arquivo`
+function pre_programa {
 
-    for url in "$@"; do
-        baixa_arquivo $url
-    done
+    # A gente chama essa função pra lidar com
+    # as variações de input.
+
+    # Tipo, printar erro se tiver algo de errado com o input, 
+    # Baixar os arquivo se tiver input, os krl e tals.
+
+    # A ideia é q dps de chamar essa função, a execução do programa 
+    # é a mesma independentemente do input.
+
+    echo "+++++++++++++++++++++++++++++++++++++++
+Este programa mostra estatísticas do
+Serviço 156 da Prefeitura de São Paulo
++++++++++++++++++++++++++++++++++++++++"
+
+    # Se não passaram nenhum argumento e não tem dados baixados
+    if [ -z $NOME_ARQ ] && [ ! -e $DIR ]; then
+        echo "ERRO: Não há dados baixados.
+Para baixar os dados antes de gerar as estatísticas, use:
+    ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
+    fi
+
+    # Se passaram argumentos, mas o arquivo passado não existe
+    if [ ! -z $NOME_ARQ ] && [ ! -e $NOME_ARQ ]; then
+        echo "ERRO: O arquivo $NOME_ARQ não existe."
+    fi
+
+    # Se passaram argumentos e o arquivo existe
+    if [ ! -z $NOME_ARQ ] && [ -e $NOME_ARQ ]; then
+
+        mkdir -p $DIR # Cria o diretório
+
+        # Lê o arquivo linha por linha e baixa o arquivo
+        while IFS= read -r linha; do
+            baixa_arquivo $linha
+        done < $NOME_ARQ
+
+    fi
+
 }
 
-
-le_input
-baixa_arquivos ${VETOR_URL[@]}
+pre_programa
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
