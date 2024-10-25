@@ -16,7 +16,7 @@
 
 # Salva a 1° entrada da linha de comando
 # O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto 
-# contendo as URLs dos arquivos CSV a serem baixados para manipulaçã
+# contendo as URLs dos arquivos CSV a serem baixados para manipulação
 NOME_ARQ=$1
 
 DIR="./dados"
@@ -87,7 +87,7 @@ function baixa_arquivos {
     for url in ${urls[@]}; do
 
         local nome_arquivo=$(basename $url) # nome do arquivo final e.g., "arquivofinal2tri2024.csv"
-        local path_output="$DIR/temp.csv" # path do output, arquivo temporário, será converrtido dps
+        local path_output="$DIR/temp.csv" # path do output, arquivo temporário, será convertido dps
 
         # Se o arquivo já existe, ent n faz nada
         # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
@@ -104,8 +104,8 @@ function baixa_arquivos {
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
 
-        # local tamanho_arquivo=$(stat -c%s "$DIR/$path_output") # Funciona em Linux
-        local tamanho_arquivo=$(stat -f%z $path_output) # Funciona em macOS
+        local tamanho_arquivo=$(stat -c%s "$path_output") # Funciona em Linux
+        #local tamanho_arquivo=$(stat -f%z $path_output) # Funciona em macOS
 
         local total_baixado=$(( total_baixado + tamanho_arquivo ))
 
@@ -188,14 +188,37 @@ function pre_programa {
     baixa_arquivos
 }
 
+function menu {
+    echo "Escolha uma opção de operação:"
+    echo "1) bla bla"
+    echo "7) Sair"
+    
+    read -p "" opcao
+    if [[ "$opcao" == "7" ]]; then
+        echo "Programa encerrado."
+        exit 0
+
+    # Obviamente temporário ...
+    elif [[ "$opcao" != "7" ]]; then
+        echo "Opção inválida. Encerrando."
+        exit 1
+    fi
+}
+
+
 # Inicializa o programa, lidando com o input.
 pre_programa
 
+# Exibe as opções e funcionalidades
+menu
 
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
 # Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
+
+
+
 
 <<COMENT
 selecionar_arquivo
