@@ -32,6 +32,8 @@ MENSAGEM_ERRO="ERRO: Não há dados baixados.\nPara baixar os dados antes de ger
 # É tipo o `rax` em assembly `x86-64`.
 retorno=""
 
+arquivo_atual="$DIR/$CODIF"
+
 function formata_tempo {
 
     # $1 -> Tempo em segundos
@@ -101,9 +103,10 @@ function baixa_arquivos {
 
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
-        # stat -c%s em Linux
-        # stat -f%z em macOS
-        local tamanho_arquivo=$(stat -f%z "$DIR/$path_output")
+
+        # local tamanho_arquivo=$(stat -c%s "$DIR/$path_output") # Funciona em Linux
+        local tamanho_arquivo=$(stat -f%z $path_output) # Funciona em macOS
+
         local total_baixado=$(( total_baixado + tamanho_arquivo ))
 
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
@@ -117,8 +120,9 @@ function baixa_arquivos {
         done
     )
 
+    # Cria um único `.csv` com a info dos outros baixados
+    # se esse arquivo ja n existe
     if [ ! -e "$DIR/$CODIF" ]; then
-        # Cria um único `.csv` com a info dos outros baixados.
         awk "NR==1||FNR>1" ${nomes[0]} > "$DIR/$CODIF"
     fi
 
@@ -166,7 +170,7 @@ function pre_programa {
 
         # Se não tem dados baixados
         if [ ! -e $DIR ]; then
-            echo $MENSAGEM_ERRO
+            echo -e $MENSAGEM_ERRO
         fi
 
         return
@@ -174,7 +178,7 @@ function pre_programa {
 
     # Se passaram argumentos, mas o arquivo não existe
     if [ ! -e $NOME_ARQ ]; then
-        echo "ERRO: O arquivo $NOME_ARQ não existe."
+        echo -e "ERRO: O arquivo $NOME_ARQ não existe."
         return
     fi
 
@@ -186,6 +190,8 @@ function pre_programa {
 
 # Inicializa o programa, lidando com o input.
 pre_programa
+
+
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
