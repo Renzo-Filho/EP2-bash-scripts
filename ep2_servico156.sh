@@ -90,7 +90,7 @@ function baixa_arquivos {
     for url in ${urls[@]}; do
 
         local nome_arquivo=$(basename $url) # nome do arquivo final e.g., "arquivofinal2tri2024.csv"
-        local path_output="$DIR/temp.csv" # path do output, arquivo temporário, será convertido dps
+        local path_output="$DIR/$nome_arquivo" # path do output, arquivo temporário, será convertido dps
 
         # Se o arquivo já existe, ent n faz nada
         # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
@@ -115,9 +115,6 @@ function baixa_arquivos {
         local num_arquivos=$((num_arquivos + 1))
         local total_baixado=$(( total_baixado + tamanho_arquivo ))
 
-        iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
-        rm "$path_output" # Remove o arquivo temporário
-
     done
 
     # Salva os paths dos arquivos baixados
@@ -128,8 +125,8 @@ function baixa_arquivos {
     )
 
     # Cria um único `.csv` com a info dos outros baixados
-    # se esse arquivo ja n existe
-    if [ ! -e "$DIR/$CODIF" ]; then
+    # se foi baixado mais de um arquivo novo
+    if [ $num_arquivos -ne 0 ]; then
         awk "NR==1||FNR>1" ${nomes[0]} > "$DIR/$CODIF"
     fi
 
