@@ -95,7 +95,6 @@ function baixa_arquivos {
         # Se o arquivo já existe, ent n faz nada
         # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
         # Se pah eu removo dps.
-
         if [ -e "$DIR/$nome_arquivo" ]; then 
             continue
         fi
@@ -118,7 +117,7 @@ function baixa_arquivos {
     done
 
     # Salva os paths dos arquivos baixados
-    nomes=$(
+    local nomes=$(
         for url in ${urls[@]}; do
             echo "$DIR/$(basename $url)"
         done
@@ -192,13 +191,14 @@ function pre_programa {
 }
 
 function menu {
+    
     echo "Escolha uma opção de operação:"
     echo "1) selecionar_arquivo"
     echo "7) Sair"
     
     read -p "" opcao
     if [[ "$opcao" == "7" ]]; then
-        echo $MENSAGEM_FINAL
+        echo -e $MENSAGEM_FINAL
         # !!!!!!!!!!!!!!!!!!!!! O ' \n ' não tá funcionando por algum motivo...
         exit 0
 
