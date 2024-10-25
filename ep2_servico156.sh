@@ -43,6 +43,7 @@ NOMES_OPERACOES=(
 retorno=""
 
 arquivo_atual="$DIR/$CODIF"
+filtros=() # Array de filtros
 
 function formata_tempo {
 
@@ -239,6 +240,10 @@ function selecionar_arquivo {
 
 }
 
+function adicionar_filtro_coluna {
+
+}
+
 function menu_principal {
     
     echo "Escolha uma opção de operação:"
@@ -247,13 +252,16 @@ function menu_principal {
     read -p "" opcao
     echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
 
-    if [[ "$opcao" == "7" ]]; then
+
+    if [ $opcao -e 1 ]; then
+        selecionar_arquivo        
+    
+    elif [ $opcao -e 2 ]; then
+        adicionar_filtro_coluna
+
+    elif [ $opcao -e 7 ]; then
         echo -e $MENSAGEM_FINAL
         exit 0
-
-    # Obviamente temporário ...
-    elif [[ "$opcao" == "1" ]]; then
-        selecionar_arquivo        
     fi
 }
 
