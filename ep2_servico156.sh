@@ -26,6 +26,8 @@ MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++\nEste programa mostra 
 MENSAGEM_FINAL="Fim do programa\n+++++++++++++++++++++++++++++++++++++++"
 MENSAGEM_ERRO="ERRO: Não há dados baixados.\nPara baixar os dados antes de gerar as estatísticas, use:\n./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
 
+MENSAGEM_OPERACOES="1) selecionar_arquivo\n2) adicionar_filtro_coluna\n3) limpar_filtros_colunas\n4) mostrar_duracao_media_reclamação\n5) mostrar_ranking_reclamacoes\n6) mostrar_reclamacoes\n7) sair"
+
 # Ent, o bash é uma bosta e não tem valor de retorno nas funções.
 # Isso é paia pra krl, mas eu ainda assim quero usar funções com valor de retorno.
 # Por esse motivo, vou usar essa variável global como uma forma de retornar valores.
@@ -190,34 +192,37 @@ function pre_programa {
     baixa_arquivos
 }
 
-function menu {
+function selecionar_arquivo {
+
+    echo "Escolha uma opção de arquivo:"
+        
+    local arquivos_dados=("$DIR"/*) # vetor com todos os arquivos em "./dados/"
+    local i=1 # contador
+
+    # Printa as opções de arquivos na pasta "./dados/" 
+    for arquivo in "${arquivos_dados[@]}"
+        do
+        nome_arquivo=$(basename "$arquivo")
+        echo "$i) $nome_arquivo"
+        ((i++))
+        done
+}
+
+function menu_principal {
     
     echo "Escolha uma opção de operação:"
-    echo "1) selecionar_arquivo"
-    echo "7) Sair"
+    echo -e $MENSAGEM_OPERACOES
     
     read -p "" opcao
+    echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
+
     if [[ "$opcao" == "7" ]]; then
         echo -e $MENSAGEM_FINAL
-        # !!!!!!!!!!!!!!!!!!!!! O ' \n ' não tá funcionando por algum motivo...
         exit 0
 
     # Obviamente temporário ...
     elif [[ "$opcao" == "1" ]]; then
-        
-        echo "Escolha uma opção de arquivo:"
-        
-        local arquivos_dados=("$DIR"/*) # vetor com todos os arquivos em "./dados/"
-        local i=1 # contador
-
-        # Printa as opções de arquivos na pasta "./dados/" 
-        for arquivo in "${arquivos_dados[@]}"
-            do
-            nome_arquivo=$(basename "$arquivo")
-            echo "$i) $nome_arquivo"
-            ((i++))
-            done
-        
+        selecionar_arquivo        
     fi
 }
 
@@ -226,7 +231,7 @@ function menu {
 pre_programa
 
 # Exibe as opções e funcionalidades
-menu
+menu_principal
 
 
 # PROBLEMAS !!!
