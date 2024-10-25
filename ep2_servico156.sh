@@ -19,14 +19,12 @@
 # contendo as URLs dos arquivos CSV a serem baixados para manipulaçã
 NOME_ARQ=$1
 
-DIR="./dados/"
+DIR="./dados"
 CODIF="arquivocompleto.csv"
 
 MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++\nEste programa mostra estatísticas do\nServiço 156 da Prefeitura de São Paulo\n+++++++++++++++++++++++++++++++++++++++"
 
-MENSAGEM_ERRO="ERRO: Não há dados baixados.
-Para baixar os dados antes de gerar as estatísticas, use:
-    ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
+MENSAGEM_ERRO="ERRO: Não há dados baixados.\nPara baixar os dados antes de gerar as estatísticas, use:\n./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
 
 # Ent, o bash é uma bosta e não tem valor de retorno nas funções.
 # Isso é paia pra krl, mas eu ainda assim quero usar funções com valor de retorno.
@@ -62,9 +60,11 @@ function formata_tempo {
 
 function baixa_arquivos {
 
+    # Le o arquivo de entrada e salva os urls em `urls`
+    IFS=$'\n' read -d '' -r -a urls < $NOME_ARQ
+
     # Cria o diretório e baixa os arquivos no
     # arquivo passado como argumento
-
     mkdir -p $DIR # Cria o diretório
 
     # Salva o tempo de início de baixar os arquivos em segundos
@@ -82,21 +82,21 @@ function baixa_arquivos {
     echo $(date '+%Y-%m-%d %H:%M:%S')
 
     # Lê o arquivo linha por linha e baixa o arquivo
-    while IFS= read -r linha; do
+    for url in ${urls[@]}; do
 
-        local nome_arquivo=$(basename $linha) # nome do arquivo final e.g., "arquivofinal2tri2024.csv"
+        local nome_arquivo=$(basename $url) # nome do arquivo final e.g., "arquivofinal2tri2024.csv"
         local path_output="$DIR/temp.csv" # path do output, arquivo temporário, será converrtido dps
 
         # Se o arquivo já existe, ent n faz nada
         # Isso é mais pra ajudar a testar, n deveria afetar o usuário.
         # Se pah eu removo dps.
-        
-        if [ -e $path_output ]; then 
+
+        if [ -e "$DIR/$nome_arquivo" ]; then 
             continue
         fi
 
         local tempo_pra_baixar_inicio=$(date +%s)
-        wget  --no-check-certificate -nv -O $path_output $linha # baixa o arquivo
+        wget -nv -O $path_output $url # baixa o arquivo
         local tempo_pra_baixar_fim=$(date +%s)
 
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
@@ -108,9 +108,21 @@ function baixa_arquivos {
 
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "$DIR/$nome_arquivo" # converte para UTF-8 e salva
 
-    done < $NOME_ARQ
+    done
 
-    # Salva o tempo final de baixar os arquivos
+    # Salva os paths dos arquivos baixados
+    nomes=$(
+        for url in ${urls[@]}; do
+            echo "$DIR/$(basename $url)"
+        done
+    )
+
+    if [ ! -e "$DIR/$CODIF" ]; then
+        # Cria um único `.csv` com a info dos outros baixados.
+        awk "NR==1||FNR>1" ${nomes[0]} > "$DIR/$CODIF"
+    fi
+
+    # Salva o tempo final de baixar e tratar os arquivos
     local tempo_fim=$(date +%s)
 
     # Printa a data final
@@ -125,7 +137,10 @@ function baixa_arquivos {
     formata_tempo $tempo_pra_baixar
 
     local total_baixado=$(( total_baixado / 1048576 )) # Converte para MB
-    local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/${tempo_pra_baixar}") # Download speed em MB/s
+
+    # Calcula a velocidade de download
+    # O `+0.01` é pra n dar erro de divisão por `0` em certos casos.
+    local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/(${tempo_pra_baixar} + 0.001)")
 
     local num_arquivos=$(wc -l $NOME_ARQ | awk '{ print $1 }') # Número de arquivos baixados
 
@@ -144,7 +159,7 @@ function pre_programa {
     # é a mesma independentemente do input.
 
     # Printa a mensagem inicial
-    echo $MENSAGEM_INICIAL
+    echo -e $MENSAGEM_INICIAL
 
     # Se não passaram nenhum argumento
     if [ -z $NOME_ARQ ]; then
