@@ -23,7 +23,7 @@ DIR="./dados"
 CODIF="arquivocompleto.csv"
 
 MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++\nEste programa mostra estatísticas do\nServiço 156 da Prefeitura de São Paulo\n+++++++++++++++++++++++++++++++++++++++"
-
+MENSAGEM_FINAL="Fim do programa\n+++++++++++++++++++++++++++++++++++++++"
 MENSAGEM_ERRO="ERRO: Não há dados baixados.\nPara baixar os dados antes de gerar as estatísticas, use:\n./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
 
 # Ent, o bash é uma bosta e não tem valor de retorno nas funções.
@@ -190,18 +190,31 @@ function pre_programa {
 
 function menu {
     echo "Escolha uma opção de operação:"
-    echo "1) bla bla"
+    echo "1) selecionar_arquivo"
     echo "7) Sair"
     
     read -p "" opcao
     if [[ "$opcao" == "7" ]]; then
-        echo "Programa encerrado."
+        echo $MENSAGEM_FINAL
+        # !!!!!!!!!!!!!!!!!!!!! O ' \n ' não tá funcionando por algum motivo...
         exit 0
 
     # Obviamente temporário ...
-    elif [[ "$opcao" != "7" ]]; then
-        echo "Opção inválida. Encerrando."
-        exit 1
+    elif [[ "$opcao" == "1" ]]; then
+        
+        echo "Escolha uma opção de arquivo:"
+        
+        local arquivos_dados=("$DIR"/*) # vetor com todos os arquivos em "./dados/"
+        local i=1 # contador
+
+        # Printa as opções de arquivos na pasta "./dados/" 
+        for arquivo in "${arquivos_dados[@]}"
+            do
+            nome_arquivo=$(basename "$arquivo")
+            echo "$i) $nome_arquivo"
+            ((i++))
+            done
+        
     fi
 }
 
