@@ -171,6 +171,7 @@ function pre_programa {
         # Se não tem dados baixados
         if [ ! -e $DIR ]; then
             echo -e $MENSAGEM_ERRO
+            exit 1
         fi
 
         return
@@ -179,7 +180,7 @@ function pre_programa {
     # Se passaram argumentos, mas o arquivo não existe
     if [ ! -e $NOME_ARQ ]; then
         echo -e "ERRO: O arquivo $NOME_ARQ não existe."
-        return
+        exit 1
     fi
 
     # Essa parte só é executada se 
@@ -229,8 +230,6 @@ menu
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
 # Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
-
-
 
 
 <<COMENT
