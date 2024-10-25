@@ -22,6 +22,15 @@ NOME_ARQ=$1
 DIR="./dados/"
 CODIF="arquivocompleto.csv"
 
+MENSAGEM_INICIAL="+++++++++++++++++++++++++++++++++++++++
+Este programa mostra estatísticas do
+Serviço 156 da Prefeitura de São Paulo
++++++++++++++++++++++++++++++++++++++++"
+
+MENSAGEM_ERRO="ERRO: Não há dados baixados.
+Para baixar os dados antes de gerar as estatísticas, use:
+    ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
+
 
 function baixa_arquivo {
     
@@ -52,16 +61,12 @@ function pre_programa {
     # A ideia é q dps de chamar essa função, a execução do programa 
     # é a mesma independentemente do input.
 
-    echo "+++++++++++++++++++++++++++++++++++++++
-Este programa mostra estatísticas do
-Serviço 156 da Prefeitura de São Paulo
-+++++++++++++++++++++++++++++++++++++++"
+    # Printa a mensagem inicial
+    echo $MENSAGEM_INICIAL
 
     # Se não passaram nenhum argumento e não tem dados baixados
     if [ -z $NOME_ARQ ] && [ ! -e $DIR ]; then
-        echo "ERRO: Não há dados baixados.
-Para baixar os dados antes de gerar as estatísticas, use:
-    ./ep2_servico156.sh <nome do arquivo com URLs de dados do Serviço 156>"
+        echo $MENSAGEM_ERRO
     fi
 
     # Se passaram argumentos, mas o arquivo passado não existe
@@ -80,14 +85,13 @@ Para baixar os dados antes de gerar as estatísticas, use:
         done < $NOME_ARQ
 
     fi
-
 }
 
+# Inicializa o programa, lidando com o input.
 pre_programa
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
-
 
 <<COMENT
 selecionar_arquivo
