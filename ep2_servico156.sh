@@ -342,7 +342,15 @@ function adicionar_filtro_coluna {
 
     echo "+++ Adicionado filtro: $valor_coluna = $filtro"
     mostra_info
-    
+
+}
+
+function limpar_filtros_colunas {
+
+    filtros=()
+
+    echo "+++ Filtros removidos"
+    mostra_info
 }
 
 function menu_principal {
@@ -361,6 +369,8 @@ function menu_principal {
             selecionar_arquivo        
         elif [ $opcao == "2" ]; then
             adicionar_filtro_coluna
+        elif [ $opcao == "3" ]; then
+            limpar_filtros_colunas
         fi
 
     done
