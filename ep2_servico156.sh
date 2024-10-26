@@ -37,6 +37,7 @@ NOMES_OPERACOES=(
 )
 
 arquivo_atual="$DIR/$CODIF"
+arquivo_filtrado="linhas_validas.csv"
 
 # Array de filtros, mapeia colunas para o respectivo filtro
 # filtros[0] -> filtro da data, filtros[1] -> filtro do canal, ...
@@ -244,7 +245,7 @@ function filtra_linhas {
     string=$(junta_strings " && " "${assertions[@]}")
     string="$string {print}"
 
-    awk -F';' $string $arquivo_atual > linhas_validas.csv
+    awk -F';' $string $arquivo_atual > $arquivo_filtrado
 
     # awk -F',' 'NR>1 && $2 == "Active" && $3 == "Completed" {print}' example.csv
     # awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
@@ -278,8 +279,12 @@ function mostra_info {
 
     fi
 
+    filtra_linhas
+
+    local num_reclamacoes=$(wc -l < $arquivo_filtrado | tr -d ' ')
+
     # Tem q calcular essa porra ainda
-    echo "+++ Número de reclamações: -1"
+    echo "+++ Número de reclamações: $num_reclamacoes"
 
     echo "+++++++++++++++++++++++++++++++++++++++"
     echo "" # Acho q tem q ter essa '\n' tbm
@@ -337,8 +342,7 @@ function adicionar_filtro_coluna {
 
     echo "+++ Adicionado filtro: $valor_coluna = $filtro"
     mostra_info
-
-    echo "${filtros[@]}"
+    
 }
 
 function menu_principal {
@@ -361,7 +365,7 @@ function menu_principal {
 
     done
 
-    filtra_linhas
+    rm $arquivo_filtrado
 
     echo -e $MENSAGEM_FINAL
     exit 0
