@@ -360,7 +360,7 @@ function mostrar_reclamacoes {
 
 }
 
-function menu_principal {
+function loop_principal {
 
     local opcao="0"
 
@@ -395,7 +395,7 @@ function menu_principal {
 pre_programa
 
 # Exibe as opções e funcionalidades
-menu_principal
+loop_principal
 
 
 # PROBLEMAS !!!
@@ -405,8 +405,8 @@ menu_principal
 # A parte de adicionar filtros ta meio lenta, 
 # ta levando uns 10 segundos pra computar os valores
 # Eu deixei ele pra olhar soh as primeiras 1000 linhas pra ir mais rápido, tem q tirar dps
-# as opções `1` e `2` parecem boas, mas ainda tem q fazer a parte de filtrar as linhas.
-# Tipo, os filtros tão la, mas tem q usar eles ainda.
+
+# Opcoes 1, 2, 3 e 6 tão prontas, falta soh 4 e 5
 
 <<COMENT
 selecionar_arquivo
