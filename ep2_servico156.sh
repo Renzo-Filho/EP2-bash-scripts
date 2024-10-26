@@ -232,7 +232,22 @@ function filtra_linhas {
 
     # Salva em um arquivo as linhas filtradas de acordo com os filtros
 
-    awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
+    # Array com colunas, usa da primeira linha do arquivo
+    IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
+
+    local assertions=("NR>1")
+
+    for index in ${!filtros[@]}; do
+        assertions+=("\$$((index + 1)) == \"${filtros[$index]}\"")
+    done
+
+    string=$(junta_strings " && " "${assertions[@]}")
+    string="$string {print}"
+
+    awk -F';' $string $arquivo_atual > linhas_validas.csv
+
+    # awk -F',' 'NR>1 && $2 == "Active" && $3 == "Completed" {print}' example.csv
+    # awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
 
 }
 
@@ -242,14 +257,10 @@ function mostra_info {
 
     echo "+++ Arquivo atual: $nome_arquivo"
 
-    local num_filtros=${#filtros[@]} # Número de filtros
-    local num_filtros_menos1=$((num_filtros - 1))
-
     # Esse if printa os filtros caso existam
     # Ele também separa os filtros com ` | `
-    # Não achei um jeito bom de fazer isso
     # Verifica se existem filtros
-    if [ $num_filtros -ne 0 ]; then
+    if [ ${#filtros[@]} -ne 0 ]; then
         
         echo "+++ Filtros atuais:"
 
@@ -349,6 +360,8 @@ function menu_principal {
         fi
 
     done
+
+    filtra_linhas
 
     echo -e $MENSAGEM_FINAL
     exit 0
