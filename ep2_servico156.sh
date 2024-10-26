@@ -36,12 +36,6 @@ NOMES_OPERACOES=(
     "sair"
 )
 
-# Ent, o bash é uma bosta e não tem valor de retorno nas funções.
-# Isso é paia pra krl, mas eu ainda assim quero usar funções com valor de retorno.
-# Por esse motivo, vou usar essa variável global como uma forma de retornar valores.
-# É tipo o `rax` em assembly `x86-64`.
-retorno=""
-
 arquivo_atual="$DIR/$CODIF"
 
 # Array de filtros, mapeia colunas para o respectivo filtro
@@ -71,7 +65,7 @@ function formata_tempo {
         resultado="${resultado}${minutos}m "
     fi
 
-    retorno="${resultado}${segundos}s"
+    echo "${resultado}${segundos}s"
 }
 
 function baixa_arquivos {
@@ -152,10 +146,10 @@ function baixa_arquivos {
     # tempo decorrido total em segundos
     local tempo_decorrido=$(( tempo_fim - tempo_inicio ))
 
-    formata_tempo $tempo_decorrido
-    echo "Tempo total decorrido: ${retorno}"
+    tempo=$(formata_tempo $tempo_decorrido)
+    echo "Tempo total decorrido: ${tempo}"
 
-    formata_tempo $tempo_pra_baixar
+    tempo=$(formata_tempo $tempo_pra_baixar)
 
     local total_baixado=$(( total_baixado / 1048576 )) # Converte para MB
 
@@ -163,7 +157,7 @@ function baixa_arquivos {
     # O `+0.01` é pra n dar erro de divisão por `0` em certos casos.
     local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/(${tempo_pra_baixar} + 0.001)")
 
-    echo "Baixados: ${num_arquivos} arquivos, ${total_baixado}M em ${retorno} (${velocidade_download} MB/s)"
+    echo "Baixados: ${num_arquivos} arquivos, ${total_baixado}M em ${tempo} (${velocidade_download} MB/s)"
 }
 
 function pre_programa {
@@ -219,6 +213,29 @@ function enumera {
 
 }
 
+function junta_strings {
+
+    # Junta strings usando um delimitador especificado
+    # $1 -> delimitador
+    # $2, ... -> strings
+    # ex: junta_strings "," "a" "b" -> "a,b"
+
+    local delimitador=${1-} 
+    local partes=${2-}
+
+    if shift 2; then
+        printf %s "$partes" "${@/#/$delimitador}"
+    fi
+}
+
+function filtra_linhas {
+
+    # Salva em um arquivo as linhas filtradas de acordo com os filtros
+
+    awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
+
+}
+
 function mostra_info {
 
     local nome_arquivo=$(basename $arquivo_atual)
@@ -258,6 +275,7 @@ function mostra_info {
 
     fi
 
+    # Tem q calcular essa porra ainda
     echo "+++ Número de reclamações: -1"
 
     echo "+++++++++++++++++++++++++++++++++++++++"
@@ -349,7 +367,11 @@ function menu_principal {
 pre_programa
 
 # Exibe as opções e funcionalidades
-menu_principal
+# menu_principal
+
+x=$(junta_strings " | " "asd" "2....")
+
+echo $x
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
@@ -357,6 +379,9 @@ menu_principal
 # Ta rapidão agora, ta em 8.89MB/s, o site do governo tava zuado
 # A parte de adicionar filtros ta meio lenta, 
 # ta levando uns 10 segundos pra computar os valores
+# Eu deixei ele pra olhar soh as primeiras 1000 linhas pra ir mais rápido, tem q tirar dps
+# as opções `1` e `2` parecem boas, mas ainda tem q fazer a parte de filtrar as linhas.
+# Tipo, os filtros tão la, mas tem q usar eles ainda.
 
 <<COMENT
 selecionar_arquivo
