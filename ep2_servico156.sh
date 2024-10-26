@@ -353,6 +353,13 @@ function limpar_filtros_colunas {
     mostra_info
 }
 
+function mostrar_reclamacoes {
+
+    cat $arquivo_filtrado
+    mostra_info
+
+}
+
 function menu_principal {
 
     local opcao="0"
@@ -371,6 +378,8 @@ function menu_principal {
             adicionar_filtro_coluna
         elif [ $opcao == "3" ]; then
             limpar_filtros_colunas
+        elif [ $opcao == "6" ]; then
+            mostrar_reclamacoes    
         fi
 
     done
