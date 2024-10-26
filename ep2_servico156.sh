@@ -256,21 +256,13 @@ function mostra_info {
         # Array com colunas, usa da primeira linha do arquivo
         IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
 
-        local contador=0
-
-        # Para cada indice com um elemento definido em filtros
+        local pares=()
+        
         for index in ${!filtros[@]}; do
-
-            echo -n "${colunas[$index]} = ${filtros[$index]}"
-
-            if [ $contador -ne $num_filtros_menos1 ]; then
-                echo -n " | "
-            fi
-
-            ((contador+))
-
+            pares+=("${colunas[$index]} = ${filtros[$index]}")
         done
-
+        
+        junta_strings " | " "${pares[@]}"
         echo ""
 
     fi
@@ -367,11 +359,8 @@ function menu_principal {
 pre_programa
 
 # Exibe as opções e funcionalidades
-# menu_principal
+menu_principal
 
-x=$(junta_strings " | " "asd" "2....")
-
-echo $x
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
