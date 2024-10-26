@@ -43,7 +43,10 @@ NOMES_OPERACOES=(
 retorno=""
 
 arquivo_atual="$DIR/$CODIF"
-filtros=() # Array de filtros, mapeia colunas para o respectivo filtro
+
+# Array de filtros, mapeia colunas para o respectivo filtro
+# filtros[0] -> filtro da data, filtros[1] -> filtro do canal, ...
+filtros=()
 
 function formata_tempo {
 
@@ -220,11 +223,43 @@ function mostra_info {
 
     local nome_arquivo=$(basename $arquivo_atual)
 
-    local num_reclamacoes=$(wc -l < $arquivo_atual | tr -d ' ') # Conta o número de linhas, aka, reclamações
-    ((num_reclamacoes--)) # Desconsidera a primeira linha, q são apenas as colunas
-
     echo "+++ Arquivo atual: $nome_arquivo"
-    echo "+++ Número de reclamações: $num_reclamacoes"
+
+    local num_filtros=${#filtros[@]} # Número de filtros
+    local num_filtros_menos1=$((num_filtros - 1))
+
+    # Esse if printa os filtros caso existam
+    # Ele também separa os filtros com ` | `
+    # Não achei um jeito bom de fazer isso
+    # Verifica se existem filtros
+    if [ $num_filtros -ne 0 ]; then
+        
+        echo "+++ Filtros atuais:"
+
+        # Array com colunas, usa da primeira linha do arquivo
+        IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
+
+        local contador=0
+
+        # Para cada indice com um elemento definido em filtros
+        for index in ${!filtros[@]}; do
+
+            echo -n "${colunas[$index]} = ${filtros[$index]}"
+
+            if [ $contador -ne $num_filtros_menos1 ]; then
+                echo -n " | "
+            fi
+
+            ((contador+))
+
+        done
+
+        echo ""
+
+    fi
+
+    echo "+++ Número de reclamações: -1"
+
     echo "+++++++++++++++++++++++++++++++++++++++"
     echo "" # Acho q tem q ter essa '\n' tbm
 }
@@ -263,8 +298,10 @@ function adicionar_filtro_coluna {
     # Pega os valores da coluna especificada, ordena e descarta valores repetidos
     # Então tranforma em um array
     while IFS= read -r line; do
-        local valores+=("$line")
-    done < <(tail -n +2 $arquivo_atual | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+        valores+=("$line")
+    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+    # done < <(head -n 100 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+    # done < <(tail -n +2 $arquivo_atual | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
 
     echo "Escolha uma opção de valor para Status da solicitação:"
     enumera ${valores[@]}
@@ -277,7 +314,10 @@ function adicionar_filtro_coluna {
 
     filtros[((coluna - 1))]=$filtro
 
+    echo "+++ Adicionado filtro: $valor_coluna = $filtro"
     mostra_info
+
+    echo "${filtros[@]}"
 }
 
 function menu_principal {
@@ -310,7 +350,6 @@ pre_programa
 
 # Exibe as opções e funcionalidades
 menu_principal
-
 
 # PROBLEMAS !!!
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
