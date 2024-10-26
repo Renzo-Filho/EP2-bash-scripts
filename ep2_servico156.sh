@@ -43,7 +43,7 @@ NOMES_OPERACOES=(
 retorno=""
 
 arquivo_atual="$DIR/$CODIF"
-filtros=() # Array de filtros
+filtros=() # Array de filtros, mapeia colunas para o respectivo filtro
 
 function formata_tempo {
 
@@ -216,6 +216,19 @@ function enumera {
 
 }
 
+function mostra_info {
+
+    local nome_arquivo=$(basename $arquivo_atual)
+
+    local num_reclamacoes=$(wc -l < $arquivo_atual | tr -d ' ') # Conta o número de linhas, aka, reclamações
+    ((num_reclamacoes--)) # Desconsidera a primeira linha, q são apenas as colunas
+
+    echo "+++ Arquivo atual: $nome_arquivo"
+    echo "+++ Número de reclamações: $num_reclamacoes"
+    echo "+++++++++++++++++++++++++++++++++++++++"
+    echo "" # Acho q tem q ter essa '\n' tbm
+}
+
 function selecionar_arquivo {
 
     echo "Escolha uma opção de arquivo:"
@@ -230,39 +243,65 @@ function selecionar_arquivo {
     local novo_arquivo=${arquivos_nomes[((escolha - 1))]}
     arquivo_atual="$DIR/$novo_arquivo"
 
-    local num_reclamacoes=$(wc -l < $arquivo_atual | tr -d ' ') # Conta o número de linhas, aka, reclamações
-    ((num_reclamacoes--)) # Desconsidera a primeira linha, q são apenas as colunas
-
-    echo "+++ Arquivo atual: $novo_arquivo"
-    echo "+++ Número de reclamações: $num_reclamacoes"
-    echo "+++++++++++++++++++++++++++++++++++++++"
-    echo "" # Acho q tem q ter essa '\n' tbm
-
+    mostra_info
 }
 
 function adicionar_filtro_coluna {
 
+    echo "Escolha uma opção de coluna para o filtro:"
+
+    IFS=';'; 
+    local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
+
+    enumera ${colunas[@]} # Printa as opções
+
+    read -p "" coluna # Lê a escolha
+    echo "" # Linha de espaço
+
+    local valores=()
+
+    # Pega os valores da coluna especificada, ordena e descarta valores repetidos
+    # Então tranforma em um array
+    while IFS= read -r line; do
+        local valores+=("$line")
+    done < <(tail -n +2 $arquivo_atual | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+
+    echo "Escolha uma opção de valor para Status da solicitação:"
+    enumera ${valores[@]}
+
+    read -p "" valor
+    echo ""
+
+    local valor_coluna=${colunas[(( coluna - 1 ))]}
+    local filtro=${valores[((valor - 1))]}
+
+    filtros[((coluna - 1))]=$filtro
+
+    mostra_info
 }
 
 function menu_principal {
-    
-    echo "Escolha uma opção de operação:"
-    enumera "${NOMES_OPERACOES[@]}"
-    
-    read -p "" opcao
-    echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
 
+    local opcao="0"
 
-    if [ $opcao -e 1 ]; then
-        selecionar_arquivo        
-    
-    elif [ $opcao -e 2 ]; then
-        adicionar_filtro_coluna
+    while [ $opcao != "7" ]; do
 
-    elif [ $opcao -e 7 ]; then
-        echo -e $MENSAGEM_FINAL
-        exit 0
-    fi
+        echo "Escolha uma opção de operação:"
+        enumera "${NOMES_OPERACOES[@]}"
+
+        read -p "" opcao # Lê a escolha
+        echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
+
+        if [ $opcao == "1" ]; then
+            selecionar_arquivo        
+        elif [ $opcao == "2" ]; then
+            adicionar_filtro_coluna
+        fi
+
+    done
+
+    echo -e $MENSAGEM_FINAL
+    exit 0
 }
 
 
@@ -277,7 +316,8 @@ menu_principal
 # Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
 # Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
 # Ta rapidão agora, ta em 8.89MB/s, o site do governo tava zuado
-
+# A parte de adicionar filtros ta meio lenta, 
+# ta levando uns 10 segundos pra computar os valores
 
 <<COMENT
 selecionar_arquivo
