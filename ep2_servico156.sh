@@ -233,7 +233,17 @@ function filtra_linhas {
 
     # Salva em um arquivo as linhas filtradas de acordo com os filtros
 
-    # Array com colunas, usa da primeira linha do arquivo
+    # Se o arquivo não existe, cria uma cópia do atual
+    if [ ! -e $arquivo_filtrado ]; then
+        cp $arquivo_atual $arquivo_filtrado
+    fi
+
+    # Se não tem filtros, não faz nada
+    if [ ${#filtros[@]} -eq 0 ]; then
+        return
+    fi
+
+    # Array com colunas, usa da primeira linha do arquivo atual
     IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
 
     local assertions=("NR>1")
@@ -245,7 +255,10 @@ function filtra_linhas {
     string=$(junta_strings " && " "${assertions[@]}")
     string="$string {print}"
 
-    awk -F';' $string $arquivo_atual > $arquivo_filtrado
+    # Aplica os filtros sobre o arquivo já filtrado, 
+    # Isso aumenta a performance.
+    awk -F';' $string $arquivo_filtrado > temp.txt
+    mv temp.txt $arquivo_filtrado
 
     # awk -F',' 'NR>1 && $2 == "Active" && $3 == "Completed" {print}' example.csv
     # awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
@@ -348,16 +361,17 @@ function adicionar_filtro_coluna {
 function limpar_filtros_colunas {
 
     filtros=()
+    rm $arquivo_filtrado # Remove o arquivo, pra ele ser criado propriamente depois
 
     echo "+++ Filtros removidos"
     mostra_info
 }
 
-function mostrar_duracao_media_reclamacao {
-
 <<COMENT
     Não funcional (esboço)... Ainda não tenho ideia de como consertar
 COMENT
+
+function mostrar_duracao_media_reclamacao {
 
     # Mostra o tempo de duração médio de uma reclamação em dias, calculado a partir da
     # diferença entre os valores das colunas "Data do Parecer" e "Data de abertura" das linhas de
@@ -397,7 +411,6 @@ COMENT
     
 }
 
-function mostrar_ranking_reclamacoes {
 <<COMENT
     Mostra ao usuário uma listagem dos nomes das colunas do arquivo selecionado e
     permite a seleção de uma coluna para análise. Depois de selecionada a coluna pelo usuário,
@@ -406,6 +419,8 @@ function mostrar_ranking_reclamacoes {
     contagem, ele deverá exibir até 5 valores com as maiores contagens (ou seja, os valores
     campeões de reclamações).
 COMENT
+
+function mostrar_ranking_reclamacoes {
 
     IFS=';'; 
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
