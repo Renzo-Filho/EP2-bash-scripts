@@ -235,7 +235,8 @@ function filtra_linhas {
 
     # Se o arquivo não existe, cria uma cópia do atual
     if [ ! -e $arquivo_filtrado ]; then
-        cp $arquivo_atual $arquivo_filtrado
+        # Copia o arquivo escolhido, pulando a primeira linha
+        sed 1,1d $arquivo_atual > $arquivo_filtrado
     fi
 
     # Se não tem filtros, não faz nada
@@ -338,7 +339,8 @@ function adicionar_filtro_coluna {
     # Então tranforma em um array
     while IFS= read -r line; do
         valores+=("$line")
-    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+    # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
+    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq) 
     # done < <(head -n 100 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
     # done < <(tail -n +2 $arquivo_atual | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
 
