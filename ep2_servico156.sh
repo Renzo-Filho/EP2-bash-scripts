@@ -114,6 +114,9 @@ function baixa_arquivos {
 
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
+        iconv -f ISO-8859-1 -t UTF8 "$path_output" > "temp.csv"
+        mv "temp.csv" "$path_output"
+
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             local tamanho_arquivo=$(stat -c%s "$path_output") # Funciona em Linux
         else
@@ -197,11 +200,6 @@ function pre_programa {
     # tem argumentos e o arquivo existe.
 
     baixa_arquivos
-
-    # Evita conflitos com runs ateriores
-    if [ -e $arquivo_filtrado ]; then
-        rm $arquivo_filtrado
-    fi
 }
 
 function enumera {
@@ -335,10 +333,6 @@ function selecionar_arquivo {
 
 function adicionar_filtro_coluna {
 
-    if [ ! -e $arquivo_filtrado ]; then
-        filtra_linhas
-    fi
-
     echo "Escolha uma opção de coluna para o filtro:"
 
     IFS=';'; 
@@ -358,7 +352,7 @@ function adicionar_filtro_coluna {
             valores+=("$valor")
         fi
     
-    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq) 
+    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
     # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
 
     # Se n tem nenhum valor possível
@@ -453,7 +447,6 @@ function mostrar_ranking_reclamacoes {
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
 
     enumera ${colunas[@]} # Printa as opções
-    echo ""
 
     read -p "" coluna # Lê a escolha
     echo "" # Linha de espaço
@@ -464,10 +457,9 @@ function mostrar_ranking_reclamacoes {
     # Então tranforma em um array
     while IFS= read -r line; do
         valores+=("$line")
-    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}") 
-
+    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
     
-    echo "+++ ${colunas[coluna-1]} com mais reclamações:"
+    echo "+++ ${colunas[coluna - 1]} com mais reclamações:"
 
     #for item in "${valores[@]}"; do
     #echo "$item"
@@ -490,6 +482,15 @@ function mostrar_reclamacoes {
 }
 
 function loop_principal {
+
+    # Evita conflitos com runs ateriores
+    if [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado
+    fi
+
+
+    # Cria o arquivo de linhas filtradas novo
+    filtra_linhas
 
     local opcao="0"
 
