@@ -335,7 +335,7 @@ function adicionar_filtro_coluna {
 
     echo "Escolha uma opção de coluna para o filtro:"
 
-    IFS=';'; 
+    IFS=';'
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
 
     enumera ${colunas[@]} # Printa as opções
@@ -446,7 +446,11 @@ COMENT
 
 function mostrar_ranking_reclamacoes {
 
-    IFS=';'; 
+    if [ ! -e $arquivo_filtrado ]; then
+        filtra_linhas
+    fi
+
+    IFS=';'
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
 
     enumera ${colunas[@]} # Printa as opções
@@ -454,27 +458,11 @@ function mostrar_ranking_reclamacoes {
     read -p "" coluna # Lê a escolha
     echo "" # Linha de espaço
 
-    local valores=()
-
-    # Pega os valores da coluna especificada, ordena e descarta valores repetidos
-    # Então tranforma em um array
-    while IFS= read -r line; do
-        valores+=("$line")
-    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
-    
     echo "+++ ${colunas[coluna - 1]} com mais reclamações:"
 
-    #for item in "${valores[@]}"; do
-    #echo "$item"
-    #done | sort | uniq -c | sort -nr | head -n 5 | awk '{print $1, $2}'
-    
-    printf "%s\n" "${valores[@]}" | sort | uniq -c | sort -nr | head -n 5 | awk '{print $1, $2}'
-    
-    echo "+++++++++++++++++++++++++++++++++++++++"
+    cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq -c | sort -nr | head -n 5
 
-    # !!!!!!!!!!!!!!!!!!!!!!!!!
-    # Tá printando um número antes do filtro, não sei se é a quantidade de elementos da coluna ou outra coisa
-    # Quando executa, só tá dando certo no arquivo '9) arquivofinal3tri2023.csv', nos outros fica em "loop" infinito (eu acho, não esperei mais de 2 min) 
+    echo "+++++++++++++++++++++++++++++++++++++++"
 }
 
 function mostrar_reclamacoes {
@@ -520,7 +508,9 @@ function loop_principal {
 
     done
 
-    rm $arquivo_filtrado
+    if [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado
+    fi
 
     echo -e $MENSAGEM_FINAL
     exit 0
