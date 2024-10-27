@@ -353,6 +353,87 @@ function limpar_filtros_colunas {
     mostra_info
 }
 
+function mostrar_duracao_media_reclamacao {
+
+<<COMENT
+    Não funcional (esboço)... Ainda não tenho ideia de como consertar
+COMENT
+
+    # Mostra o tempo de duração médio de uma reclamação em dias, calculado a partir da
+    # diferença entre os valores das colunas "Data do Parecer" e "Data de abertura" das linhas de
+    # reclamações selecionadas no momento.
+
+    local arquivo="$arquivo_atual" # Caminho para o arquivo de reclamações
+    local total_dias=0             # Soma total de dias de duração
+    local contagem=0               # Contador de linhas válidas
+
+    # Itera sobre cada linha das reclamações selecionadas
+    while IFS=';' read -r col1 _ _ _ _ _ _ _ _ _ _ _ col13 _; do
+        # Verifica se ambas as colunas de datas estão presentes
+        if [[ -n "$col1" && -n "$col13" ]]; then
+            # Converte as datas para segundos desde "Epoch" para realizar cálculo de dias
+            data_inicial=$(date -d "$col1" +%s)
+            data_final=$(date -d "$col13" +%s)
+
+            # Verifica se a conversão foi bem-sucedida
+            if [[ -n "$data_inicial" && -n "$data_final" ]]; then
+                # Calcula a diferença em dias
+                diferenca_dias=$(( (data_final - data_inicial) / 86400 ))
+
+                # Soma a diferença de dias ao total e incrementa o contador
+                total_dias=$((total_dias + diferenca_dias))
+                ((contagem++))
+            fi
+        fi
+    done < <(tail -n +2 "$arquivo") # Pula o cabeçalho do arquivo
+
+    # Calcula a média, se houver reclamações válidas
+    if (( contagem > 0 )); then
+        media=$((total_dias / contagem))
+        echo "Duração média das reclamações: $media dias"
+    else
+        echo "Nenhuma reclamação válida encontrada para cálculo."
+    fi
+    
+}
+
+function mostrar_ranking_reclamacoes {
+<<COMENT
+    Mostra ao usuário uma listagem dos nomes das colunas do arquivo selecionado e
+    permite a seleção de uma coluna para análise. Depois de selecionada a coluna pelo usuário,
+    para cada valor distinto existente na coluna o programa deverá obter o número de linhas de
+    reclamações que contêm aquele valor dentro delas (em qualquer posição). A partir dessa
+    contagem, ele deverá exibir até 5 valores com as maiores contagens (ou seja, os valores
+    campeões de reclamações).
+COMENT
+
+    IFS=';'; 
+    local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
+
+    enumera ${colunas[@]} # Printa as opções
+    echo ""
+
+    read -p "" coluna # Lê a escolha
+    echo "" # Linha de espaço
+
+    local valores=()
+
+    # Pega os valores da coluna especificada, ordena e descarta valores repetidos
+    # Então tranforma em um array
+    while IFS= read -r line; do
+        valores+=("$line")
+    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+
+    # COMO DESCOBRIR AS TOP5 MAIS FREQUENTES??
+
+
+    echo "+++ ${colunas[coluna-1]} com mais reclamações:"
+
+    echo "+++++++++++++++++++++++++++++++++++++++"
+
+
+}
+
 function mostrar_reclamacoes {
 
     cat $arquivo_filtrado
@@ -378,6 +459,10 @@ function loop_principal {
             adicionar_filtro_coluna
         elif [ $opcao == "3" ]; then
             limpar_filtros_colunas
+        elif [ $opcao == "4" ]; then
+            mostrar_duracao_media_reclamacao
+        elif [ $opcao == "5" ]; then
+            mostrar_ranking_reclamacoes
         elif [ $opcao == "6" ]; then
             mostrar_reclamacoes    
         fi
@@ -408,16 +493,3 @@ loop_principal
 
 # Opcoes 1, 2, 3 e 6 tão prontas, falta soh 4 e 5
 
-<<COMENT
-selecionar_arquivo
-Mostra ao usuário uma listagem dos arquivos CSV disponíveis no diretório de dados e
-permite a seleção de um arquivo para manipular.
-Todas as demais operações são aplicadas sobre o último arquivo selecionado pelo
-usuário. No início da execução, considere que o arquivo selecionado é o CSV completo
-(“arquivocompleto.csv”).
-
-
-function selecionar_arquivo {
-
-}
-COMENT
