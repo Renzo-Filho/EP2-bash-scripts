@@ -324,7 +324,9 @@ function selecionar_arquivo {
     arquivo_atual="$DIR/$novo_arquivo"
 
     # Tem q remover o atual pra ele computar corretamente dps
-    rm $arquivo_filtrado
+    if [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado
+    fi
 
     mostra_info
 }
