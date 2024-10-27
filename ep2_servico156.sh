@@ -422,16 +422,21 @@ COMENT
     # Então tranforma em um array
     while IFS= read -r line; do
         valores+=("$line")
-    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+    done < <(head -n 1000 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}") 
 
-    # COMO DESCOBRIR AS TOP5 MAIS FREQUENTES??
-
-
+    
     echo "+++ ${colunas[coluna-1]} com mais reclamações:"
 
+    #for item in "${valores[@]}"; do
+    #echo "$item"
+    #done | sort | uniq -c | sort -nr | head -n 5 | awk '{print $1, $2}'
+    
+    printf "%s\n" "${valores[@]}" | sort | uniq -c | sort -nr | head -n 5 | awk '{print $1, $2}'
+    
     echo "+++++++++++++++++++++++++++++++++++++++"
 
-
+    # !!!!!!!!!!!!!!!!!!!!!!!!!
+    # Tá printando um número antes do filtro, não sei se é a quantidade de elementos da coluna ou outra coisa
 }
 
 function mostrar_reclamacoes {
