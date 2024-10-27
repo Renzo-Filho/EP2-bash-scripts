@@ -197,6 +197,11 @@ function pre_programa {
     # tem argumentos e o arquivo existe.
 
     baixa_arquivos
+
+    # Evita conflitos com runs ateriores
+    if [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado
+    fi
 }
 
 function enumera {
