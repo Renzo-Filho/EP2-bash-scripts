@@ -382,7 +382,10 @@ function adicionar_filtro_coluna {
 function limpar_filtros_colunas {
 
     filtros=()
-    rm $arquivo_filtrado # Remove o arquivo, pra ele ser criado propriamente depois
+
+    if [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado # Remove o arquivo, pra ele ser criado propriamente depois
+    fi
 
     echo "+++ Filtros removidos"
     mostra_info
@@ -476,9 +479,12 @@ function mostrar_ranking_reclamacoes {
 
 function mostrar_reclamacoes {
 
+    if [ ! -e $arquivo_filtrado ]; then
+        filtra_linhas
+    fi
+
     cat $arquivo_filtrado
     mostra_info
-
 }
 
 function loop_principal {
@@ -487,10 +493,6 @@ function loop_principal {
     if [ -e $arquivo_filtrado ]; then
         rm $arquivo_filtrado
     fi
-
-
-    # Cria o arquivo de linhas filtradas novo
-    filtra_linhas
 
     local opcao="0"
 
