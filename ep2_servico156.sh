@@ -435,15 +435,6 @@ function mostrar_duracao_media_reclamacao {
     
 }
 
-<<COMENT
-    Mostra ao usuário uma listagem dos nomes das colunas do arquivo selecionado e
-    permite a seleção de uma coluna para análise. Depois de selecionada a coluna pelo usuário,
-    para cada valor distinto existente na coluna o programa deverá obter o número de linhas de
-    reclamações que contêm aquele valor dentro delas (em qualquer posição). A partir dessa
-    contagem, ele deverá exibir até 5 valores com as maiores contagens (ou seja, os valores
-    campeões de reclamações).
-COMENT
-
 function mostrar_ranking_reclamacoes {
 
     if [ ! -e $arquivo_filtrado ]; then
@@ -523,16 +514,15 @@ pre_programa
 # Exibe as opções e funcionalidades
 loop_principal
 
+# FUNCIONANDO !
 # A parte de filtrar ta bem mais rapida agr
+# A função 5 ta funcionando bem agr
+
+# Acho q consegui concertar a maioria dos erros,
+# mas me fala se vc achar mais
+
 # PROBLEMAS !!!
 
 # Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
-
-# Opcoes 1, 2, 3 e 6 tão prontas, falta soh 4 e 5
 # A 4 eu meio que só deixei um esboço lá, n consegui pensar em muita coisa
-
-# A 5 tá quase pronta, talvez só falta corrigir a impressão final e ver porque só funciona com o arquivo que mencionei
-# Talvez seja alguma idiotice, pq meio que aproveitei seu código da função 2 "filtro-coluna" 
-
-# PS: Pode apagar depois aquele comentário gigante lá da função 5, deixei pra ir verificando enquanto fazia, se tava certinho como ela pediu 
 
