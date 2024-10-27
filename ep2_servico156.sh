@@ -115,7 +115,8 @@ function baixa_arquivos {
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "temp.csv"
-        mv "temp.csv" "$path_output"
+        tr -d '\r' < "temp.csv" > "$path_output"
+        rm temp.csv
 
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             local tamanho_arquivo=$(stat -c%s "$path_output") # Funciona em Linux
@@ -241,7 +242,7 @@ function filtra_linhas {
         # Copia o arquivo escolhido, pulando a primeira linha
         # Também remove o '\r' (último character de cada linha), 
         # ele pode causar alguns problemas pra gente
-        sed 1,1d $arquivo_atual | sed 's/.$//' > $arquivo_filtrado
+        sed 1,1d $arquivo_atual > $arquivo_filtrado
     fi
 
     # Se não tem filtros, não faz nada
@@ -363,7 +364,7 @@ function adicionar_filtro_coluna {
         return
     fi
 
-    echo "Escolha uma opção de valor para Status da solicitação:"
+    echo "Escolha uma opção de valor para ${colunas[$coluna - 1]}:"
     enumera ${valores[@]}
 
     read -p "" valor
