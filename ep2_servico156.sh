@@ -391,48 +391,60 @@ function limpar_filtros_colunas {
     mostra_info
 }
 
-<<COMENT
-    Não funcional (esboço)... Ainda não tenho ideia de como consertar
-COMENT
-
 function mostrar_duracao_media_reclamacao {
+
+    if [ ! -e $arquivo_filtrado ]; then
+        filtra_linhas
+    fi
 
     # Mostra o tempo de duração médio de uma reclamação em dias, calculado a partir da
     # diferença entre os valores das colunas "Data do Parecer" e "Data de abertura" das linhas de
     # reclamações selecionadas no momento.
 
-    local arquivo="$arquivo_atual" # Caminho para o arquivo de reclamações
-    local total_dias=0             # Soma total de dias de duração
+    local total_segundos=0
     local contagem=0               # Contador de linhas válidas
 
     # Itera sobre cada linha das reclamações selecionadas
     while IFS=';' read -r col1 _ _ _ _ _ _ _ _ _ _ _ col13 _; do
+
         # Verifica se ambas as colunas de datas estão presentes
-        if [[ -n "$col1" && -n "$col13" ]]; then
-            # Converte as datas para segundos desde "Epoch" para realizar cálculo de dias
-            data_inicial=$(date -d "$col1" +%s)
-            data_final=$(date -d "$col13" +%s)
-
-            # Verifica se a conversão foi bem-sucedida
-            if [[ -n "$data_inicial" && -n "$data_final" ]]; then
-                # Calcula a diferença em dias
-                diferenca_dias=$(( (data_final - data_inicial) / 86400 ))
-
-                # Soma a diferença de dias ao total e incrementa o contador
-                total_dias=$((total_dias + diferenca_dias))
-                ((contagem++))
-            fi
+        if [[ ! -n "$col1" ||  ! -n "$col13" ]]; then
+            continue
         fi
-    done < <(tail -n +2 "$arquivo") # Pula o cabeçalho do arquivo
+
+        # Converte as datas para segundos desde "Epoch" para realizar cálculo de dias
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            local data_inicial=$(date -d "$col1" +%s)
+            local data_final=$(date -d "$col13" +%s)
+        else
+            local data_inicial=$(date -j -f "%Y-%m-%d %H:%M:%S" "$col1" "+%s")
+            local data_final=$(date -j -f "%Y-%m-%d %H:%M:%S" "$col13" "+%s")
+        fi
+
+        # Verifica se a conversão foi bem-sucedida
+        if [[ ! -n "$data_inicial" || ! -n "$data_final" ]]; then
+            continue  
+        fi
+
+        # Calcula a diferença em segundos
+        local diff_segundos=$(( data_final - data_inicial ))
+
+        # Soma a diferença de segundos ao total e incrementa o contador
+        local total_segundos=$(( total_segundos + diff_segundos ))
+        ((contagem++))
+
+    done < $arquivo_filtrado
 
     # Calcula a média, se houver reclamações válidas
     if (( contagem > 0 )); then
-        media=$((total_dias / contagem))
+        local media=$((total_segundos / 86400 / contagem))
         echo "Duração média das reclamações: $media dias"
     else
         echo "Nenhuma reclamação válida encontrada para cálculo."
     fi
     
+    echo "+++++++++++++++++++++++++++++++++++++++"
+    echo ""
 }
 
 function mostrar_ranking_reclamacoes {
@@ -517,6 +529,7 @@ loop_principal
 # FUNCIONANDO !
 # A parte de filtrar ta bem mais rapida agr
 # A função 5 ta funcionando bem agr
+# A função 4 ta funcionando tbm
 
 # Acho q consegui concertar a maioria dos erros,
 # mas me fala se vc achar mais
@@ -524,5 +537,4 @@ loop_principal
 # PROBLEMAS !!!
 
 # Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
-# A 4 eu meio que só deixei um esboço lá, n consegui pensar em muita coisa
-
+# A 4 ta lenta pra krl, mas ta funcionando
