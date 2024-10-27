@@ -437,6 +437,7 @@ COMENT
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!
     # Tá printando um número antes do filtro, não sei se é a quantidade de elementos da coluna ou outra coisa
+    # Quando executa, só tá dando certo no arquivo '9) arquivofinal3tri2023.csv', nos outros fica em "loop" infinito (eu acho, não esperei mais de 2 min) 
 }
 
 function mostrar_reclamacoes {
@@ -489,12 +490,17 @@ loop_principal
 
 
 # PROBLEMAS !!!
-# Os arquivo estão sendo baixados de forma muito lenta, MUITO LENTA!
-# Ta lento pra porra mesmo, pqp, ta uns 3 min por arquivo, 0.5MB/s
-# Ta rapidão agora, ta em 8.89MB/s, o site do governo tava zuado
 # A parte de adicionar filtros ta meio lenta, 
 # ta levando uns 10 segundos pra computar os valores
 # Eu deixei ele pra olhar soh as primeiras 1000 linhas pra ir mais rápido, tem q tirar dps
 
+# Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
+
 # Opcoes 1, 2, 3 e 6 tão prontas, falta soh 4 e 5
+# A 4 eu meio que só deixei um esboço lá, n consegui pensar em muita coisa
+
+# A 5 tá quase pronta, talvez só falta corrigir a impressão final e ver porque só funciona com o arquivo que mencionei
+# Talvez seja alguma idiotice, pq meio que aproveitei seu código da função 2 "filtro-coluna" 
+
+# PS: Pode apagar depois aquele comentário gigante lá da função 5, deixei pra ir verificando enquanto fazia, se tava certinho como ela pediu 
 
