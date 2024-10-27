@@ -318,10 +318,17 @@ function selecionar_arquivo {
     local novo_arquivo=${arquivos_nomes[((escolha - 1))]}
     arquivo_atual="$DIR/$novo_arquivo"
 
+    # Tem q remover o atual pra ele computar corretamente dps
+    rm $arquivo_filtrado
+
     mostra_info
 }
 
 function adicionar_filtro_coluna {
+
+    if [ ! -e $arquivo_filtrado ]; then
+        filtra_linhas
+    fi
 
     echo "Escolha uma opção de coluna para o filtro:"
 
@@ -337,12 +344,21 @@ function adicionar_filtro_coluna {
 
     # Pega os valores da coluna especificada, ordena e descarta valores repetidos
     # Então tranforma em um array
-    while IFS= read -r line; do
-        valores+=("$line")
-    # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
+    while IFS= read -r valor; do
+        if [ ! -z $valor ]; then # Verifica se o valor não é vazia
+            echo "$valor, ${#valor}"
+            valores+=("$line")
+        fi
     done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq) 
-    # done < <(head -n 100 $arquivo_atual | tail -n +2 | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
-    # done < <(tail -n +2 $arquivo_atual | awk -F "\"*;\"*" "{print \$$coluna}" | sort | uniq) 
+    # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
+
+    # Se n tem nenhum valor possível
+    # para ser usado como filtro
+    if [ ${#valores[@]} -eq 0 ]; then
+        echo "Não é possível adicionar um filtro para essa coluna com os filtros atuais."
+        mostra_info
+        return
+    fi
 
     echo "Escolha uma opção de valor para Status da solicitação:"
     enumera ${valores[@]}
@@ -507,9 +523,7 @@ loop_principal
 
 
 # PROBLEMAS !!!
-# A parte de adicionar filtros ta meio lenta, 
-# ta levando uns 10 segundos pra computar os valores
-# Eu deixei ele pra olhar soh as primeiras 1000 linhas pra ir mais rápido, tem q tirar dps
+# A parte de filtrar ta bem mais rapida agr
 
 # Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
 
