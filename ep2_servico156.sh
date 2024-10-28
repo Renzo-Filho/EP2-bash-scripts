@@ -370,7 +370,6 @@ function adicionar_filtro_coluna {
     enumera ${valores[@]}
 
     read -p "#? " valor
-    echo ""
 
     local valor_coluna=${colunas[(( coluna - 1 ))]}
     local filtro=${valores[((valor - 1))]}
@@ -461,6 +460,9 @@ function mostrar_ranking_reclamacoes {
 
     verifica_arquivo $CRIA_ARQUIVO
 
+    echo ""
+    echo "Escolha uma opção de coluna para análise:"
+
     IFS=';'
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
 
@@ -475,6 +477,7 @@ function mostrar_ranking_reclamacoes {
     cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq -c | sort -nr | head -n 5 | sed 's/^/   /'
 
     echo "+++++++++++++++++++++++++++++++++++++++"
+    echo ""
 }
 
 function mostrar_reclamacoes {
