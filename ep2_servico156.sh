@@ -177,6 +177,7 @@ function baixa_arquivos {
     local velocidade_download=$(bc <<< "scale=2; ${total_baixado}/(${tempo_pra_baixar} + 0.001)")
 
     echo "Baixados: ${num_arquivos} arquivos, ${total_baixado}M em ${tempo} (${velocidade_download} MB/s)"
+    echo ""
 }
 
 function pre_programa {
