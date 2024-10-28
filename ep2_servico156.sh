@@ -331,7 +331,15 @@ function verifica_arquivo {
 
 function selecionar_arquivo {
 
-    limpar_filtros_colunas
+    # Remove filtros e o arquivo filtrado.
+    if [ ${#filtros[@]} -ne 0 ]; then
+    
+        filtros=()
+
+        if [ -e $arquivo_filtrado]; then
+            rm $arquivo_filtrado
+        fi
+    fi
 
     echo "Escolha uma opção de arquivo:"
     
@@ -484,7 +492,7 @@ function mostrar_ranking_reclamacoes {
 
     echo "+++ ${colunas[coluna - 1]} com mais reclamações:"
 
-    cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq -c | sort -nr | head -n 5
+    cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq -c | sort -nr | head -n 5 | sed 's/^/   /'
 
     echo "+++++++++++++++++++++++++++++++++++++++"
 }
