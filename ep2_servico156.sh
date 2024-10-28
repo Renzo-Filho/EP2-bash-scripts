@@ -14,6 +14,13 @@
 
 # Só funciona em sistemas Unix, fds windows
 
+# Filtra as linhas verificando se o filtro esta contido na linha
+# Isso pode causar problemas como, se selecionarmos DISTRITO=TUCURVI,
+# O programa aceita linhas com DISTRITO=SANTANA-TUCURVI e 
+# SUBPREFEITURA=TUCURUVI. No entanto, isso está de acordo com o esperado
+# Uma vez que produz os mesmos resultados que a Kelly.
+
+
 # Salva a 1° entrada da linha de comando
 # O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto 
 # contendo as URLs dos arquivos CSV a serem baixados para manipulação
@@ -45,6 +52,7 @@ arquivo_filtrado="linhas_validas.csv"
 # Array de filtros, mapeia colunas para o respectivo filtro
 # filtros[0] -> filtro da data, filtros[1] -> filtro do canal, ...
 filtros=()
+filtros_string=""
 
 function formata_tempo {
 
@@ -253,26 +261,10 @@ function filtra_linhas {
         return
     fi
 
-    # Array com colunas, usa da primeira linha do arquivo atual
-    IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
-
-    local assertions=()
-
-    for index in ${!filtros[@]}; do
-        assertions+=("\$$((index + 1)) == \"${filtros[$index]}\"")
+    for filtro in ${filtros[@]}; do
+        grep "$filtro" "$arquivo_filtrado" > temp.txt
+        mv temp.txt "$arquivo_filtrado"
     done
-
-    string=$(junta_strings " && " "${assertions[@]}")
-    string="$string {print}"
-
-    # Aplica os filtros sobre o arquivo já filtrado, 
-    # Isso aumenta a performance.
-    awk -F';' $string $arquivo_filtrado > temp.txt
-    mv temp.txt $arquivo_filtrado
-
-    # awk -F',' 'NR>1 && $2 == "Active" && $3 == "Completed" {print}' example.csv
-    # awk -F';' 'NR>1 && $2 == "Active" && $3 == "Completed" {count++} END {print count}' $arquivo_atual
-
 }
 
 function mostra_info {
@@ -285,21 +277,8 @@ function mostra_info {
     # Ele também separa os filtros com ` | `
     # Verifica se existem filtros
     if [ ${#filtros[@]} -ne 0 ]; then
-        
         echo "+++ Filtros atuais:"
-
-        # Array com colunas, usa da primeira linha do arquivo
-        IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
-
-        local pares=()
-        
-        for index in ${!filtros[@]}; do
-            pares+=("${colunas[$index]} = ${filtros[$index]}")
-        done
-        
-        junta_strings " | " "${pares[@]}"
-        echo ""
-
+        echo "$filtros_string"
     fi
 
     filtra_linhas
@@ -341,6 +320,7 @@ function selecionar_arquivo {
         fi
     fi
 
+    echo ""
     echo "Escolha uma opção de arquivo:"
     
     local arquivos_nomes=()
@@ -351,7 +331,7 @@ function selecionar_arquivo {
 
     enumera "${arquivos_nomes[@]}"
 
-    read -p "" escolha
+    read -p "#? " escolha
 
     local novo_arquivo=${arquivos_nomes[((escolha - 1))]}
     arquivo_atual="$DIR/$novo_arquivo"
@@ -368,6 +348,7 @@ function adicionar_filtro_coluna {
 
     verifica_arquivo $CRIA_ARQUIVO
 
+    echo ""
     echo "Escolha uma opção de coluna para o filtro:"
 
     IFS=';'
@@ -375,7 +356,7 @@ function adicionar_filtro_coluna {
 
     enumera ${colunas[@]} # Printa as opções
 
-    read -p "" coluna # Lê a escolha
+    read -p "#? " coluna # Lê a escolha
     echo "" # Linha de espaço
 
     local valores=()
@@ -387,7 +368,7 @@ function adicionar_filtro_coluna {
             valores+=("$valor")
         fi
     
-    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort --ignore-case | uniq)
+    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
     # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
 
     # Se n tem nenhum valor possível
@@ -401,15 +382,23 @@ function adicionar_filtro_coluna {
     echo "Escolha uma opção de valor para ${colunas[$coluna - 1]}:"
     enumera ${valores[@]}
 
-    read -p "" valor
+    read -p "#? " valor
     echo ""
 
     local valor_coluna=${colunas[(( coluna - 1 ))]}
     local filtro=${valores[((valor - 1))]}
 
-    filtros[((coluna - 1))]=$filtro
+    local par="$valor_coluna = $filtro"
 
-    echo "+++ Adicionado filtro: $valor_coluna = $filtro"
+    filtros+=($filtro)
+
+    if [ ${#filtros_string} -ne 0 ]; then
+        filtros_string+=" | "
+    fi
+
+    filtros_string+="$par"
+
+    echo "+++ Adicionado filtro: $par"
     mostra_info
 
 }
@@ -417,6 +406,7 @@ function adicionar_filtro_coluna {
 function limpar_filtros_colunas {
 
     filtros=()
+    filtros_string=""
 
     verifica_arquivo $REMOVE_ARQUIVO
 
@@ -487,7 +477,7 @@ function mostrar_ranking_reclamacoes {
 
     enumera ${colunas[@]} # Printa as opções
 
-    read -p "" coluna # Lê a escolha
+    read -p "#? " coluna # Lê a escolha
     echo "" # Linha de espaço
 
     echo "+++ ${colunas[coluna - 1]} com mais reclamações:"
@@ -516,8 +506,7 @@ function loop_principal {
         echo "Escolha uma opção de operação:"
         enumera "${NOMES_OPERACOES[@]}"
 
-        read -p "" opcao # Lê a escolha
-        echo "" # Acho q tem q ter uma linha entre o input e o resto, pelo menos parece pelo pdf dela
+        read -p "#? " opcao # Lê a escolha
 
         if [ $opcao == "1" ]; then
             selecionar_arquivo        
@@ -547,16 +536,3 @@ pre_programa
 
 # Exibe as opções e funcionalidades
 loop_principal
-
-# FUNCIONANDO !
-# A parte de filtrar ta bem mais rapida agr
-# A função 5 ta funcionando bem agr
-# A função 4 ta funcionando tbm
-
-# Acho q consegui concertar a maioria dos erros,
-# mas me fala se vc achar mais
-
-# PROBLEMAS !!!
-
-# Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
-# A 4 ta lenta pra krl, mas ta funcionando
