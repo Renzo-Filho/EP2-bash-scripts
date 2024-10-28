@@ -10,16 +10,14 @@
 # NUSP 2: 15453282
 ##################################################################
 
+# L I N K   D O   G I T H U B
+# https://github.com/Renzo-Filho/EP2-bash-scripts
+
+##################################################################
+
 #!/bin/bash
 
-# Só funciona em sistemas Unix, fds windows
-
-# Filtra as linhas verificando se o filtro esta contido na linha
-# Isso pode causar problemas como, se selecionarmos DISTRITO=TUCURVI,
-# O programa aceita linhas com DISTRITO=SANTANA-TUCURVI e 
-# SUBPREFEITURA=TUCURUVI. No entanto, isso está de acordo com o esperado
-# Uma vez que produz os mesmos resultados que a Kelly.
-
+# Funciona em sistemas Unix. Há poucas diferenças em sistemas MacOS.
 
 # Salva a 1° entrada da linha de comando
 # O parâmetro deverá ser o nome (ou caminho+nome) de um arquivo texto 
@@ -43,16 +41,18 @@ NOMES_OPERACOES=(
     "sair"
 )
 
+# Input da função 'verifica_arquivo'
 CRIA_ARQUIVO=0
 REMOVE_ARQUIVO=1
 
 arquivo_atual="$DIR/$CODIF"
 arquivo_filtrado="linhas_validas.csv"
 
-# Array de filtros, mapeia colunas para o respectivo filtro
-# filtros[0] -> filtro da data, filtros[1] -> filtro do canal, ...
+# Coleção de filtros. Será aplicado na função 'filtra_linhas'
 filtros=()
 filtros_string=""
+
+############################## F U N Ç Õ E S ##############################
 
 function formata_tempo {
 
@@ -125,7 +125,10 @@ function baixa_arquivos {
 
         local tempo_pra_baixar=$(( tempo_pra_baixar + tempo_pra_baixar_fim - tempo_pra_baixar_inicio ))
 
+        # conversão para UTF8
         iconv -f ISO-8859-1 -t UTF8 "$path_output" > "temp.csv"
+
+        # Remove o último caractere de cada linha do arquivo baixado. Inibe problemas quando tentamos imprimir os valores da última coluna.
         tr -d '\r' < "temp.csv" > "$path_output"
         rm temp.csv
 
@@ -181,8 +184,7 @@ function pre_programa {
     # A gente chama essa função pra lidar com
     # as variações de input.
 
-    # Tipo, printar erro se tiver algo de errado com o input, 
-    # Baixar os arquivo se tiver input, os krl e tals.
+    # Tipo, printar erro se tiver algo de errado com o input ou baixar os arquivos se tiver inputs.
 
     # A ideia é q dps de chamar essa função, a execução do programa 
     # é a mesma independentemente do input.
@@ -229,21 +231,6 @@ function enumera {
 
 }
 
-function junta_strings {
-
-    # Junta strings usando um delimitador especificado
-    # $1 -> delimitador
-    # $2, ... -> strings
-    # ex: junta_strings "," "a" "b" -> "a,b"
-
-    local delimitador=${1-} 
-    local partes=${2-}
-
-    if shift 2; then
-        printf %s "$partes" "${@/#/$delimitador}"
-    fi
-}
-
 function filtra_linhas {
 
     # Salva em um arquivo as linhas filtradas de acordo com os filtros
@@ -251,8 +238,6 @@ function filtra_linhas {
     # Se o arquivo não existe, cria uma cópia do atual
     if [ ! -e $arquivo_filtrado ]; then
         # Copia o arquivo escolhido, pulando a primeira linha
-        # Também remove o '\r' (último character de cada linha), 
-        # ele pode causar alguns problemas pra gente
         sed 1,1d $arquivo_atual > $arquivo_filtrado
     fi
 
@@ -261,6 +246,7 @@ function filtra_linhas {
         return
     fi
 
+    # Para cada filtro, salvamos as linhas que contém o filtro buscado
     for filtro in ${filtros[@]}; do
         grep "$filtro" "$arquivo_filtrado" > temp.txt
         mv temp.txt "$arquivo_filtrado"
@@ -285,11 +271,10 @@ function mostra_info {
 
     local num_reclamacoes=$(wc -l < $arquivo_filtrado | tr -d ' ')
 
-    # Tem q calcular essa porra ainda
     echo "+++ Número de reclamações: $num_reclamacoes"
 
     echo "+++++++++++++++++++++++++++++++++++++++"
-    echo "" # Acho q tem q ter essa '\n' tbm
+    echo "" 
 }
 
 function verifica_arquivo {
@@ -307,6 +292,8 @@ function verifica_arquivo {
     fi
 
 }
+
+################# F U N Ç Õ E S   P R I N C I P A I S #################
 
 function selecionar_arquivo {
 
@@ -370,7 +357,6 @@ function adicionar_filtro_coluna {
         fi
     
     done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
-    # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
 
     # Se n tem nenhum valor possível
     # para ser usado como filtro
@@ -405,6 +391,8 @@ function adicionar_filtro_coluna {
 }
 
 function limpar_filtros_colunas {
+
+    # Remove todos os filtros aplicados
 
     filtros=()
     filtros_string=""
@@ -462,7 +450,7 @@ function mostrar_duracao_media_reclamacao {
         local media=$((total_segundos / 86400 / contagem))
         echo "Duração média das reclamações: $media dias"
     else
-        echo "Nenhuma reclamação válida encontrada para cálculo."
+        echo "Nenhuma reclamação válida encontrada."
     fi
     
     echo "+++++++++++++++++++++++++++++++++++++++"
@@ -483,12 +471,15 @@ function mostrar_ranking_reclamacoes {
 
     echo "+++ ${colunas[coluna - 1]} com mais reclamações:"
 
+    # Separa as linhas pelas colunas, ordena-as numericamente e imprime os 5 maiores valores com um "espaço" na frente.
     cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq -c | sort -nr | head -n 5 | sed 's/^/   /'
 
     echo "+++++++++++++++++++++++++++++++++++++++"
 }
 
 function mostrar_reclamacoes {
+
+    # Mostra as reclamações ;)
 
     verifica_arquivo $CRIA_ARQUIVO
 
@@ -497,6 +488,8 @@ function mostrar_reclamacoes {
 }
 
 function loop_principal {
+
+    # Executa o programa, fornecendo um menu ao usuário
 
     verifica_arquivo $REMOVE_ARQUIVO
 
