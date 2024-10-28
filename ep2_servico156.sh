@@ -314,8 +314,9 @@ function selecionar_arquivo {
     if [ ${#filtros[@]} -ne 0 ]; then
     
         filtros=()
+        filtros_string=""
 
-        if [ -e $arquivo_filtrado]; then
+        if [ -e $arquivo_filtrado ]; then
             rm $arquivo_filtrado
         fi
     fi
