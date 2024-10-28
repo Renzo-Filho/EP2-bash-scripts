@@ -256,7 +256,7 @@ function filtra_linhas {
     # Array com colunas, usa da primeira linha do arquivo atual
     IFS=';'; local colunas=($(head -n 1 $arquivo_atual)) 
 
-    local assertions=("NR>1")
+    local assertions=()
 
     for index in ${!filtros[@]}; do
         assertions+=("\$$((index + 1)) == \"${filtros[$index]}\"")
@@ -560,3 +560,37 @@ loop_principal
 
 # Faz uns testes seguidos aí. Usa vários comandos, vai perceber que dá uma bugada no programa... 
 # A 4 ta lenta pra krl, mas ta funcionando
+
+2023-07-04 10:52:11;CHATBOT;Cidadania e assistência social;Questões raciais, étnicas e religiosas;Denunciar racismo;;;;;;;;2023-07-04 11:13:47;FINALIZADA;SMDHC;;;;;
+2023-07-10 15:18:41;CHATBOT;Trânsito e Transporte;Veículos abandonados;Solicitar remoção de veículo/carcaça abandonado na via pública;Rua Vieira de Morais;1950;04617007;;;0;0;2023-07-29 17:33:13;EM ANDAMENTO;SMSUB;;;;;
+2023-07-14 10:54:51;CHATBOT;Cidadania e assistência social;Mulher;Denunciar violência contra mulher;Rua Líbero Badaró;84;01008000;;;0;0;2023-07-14 10:57:19;FINALIZADA;SMDHC;;;;;
+2023-08-11 15:02:37;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Visconde de Balsemão;191;03414080;;;0;0;2023-08-11 15:09:51;FINALIZADA;SMSUB;;;;;
+2023-08-16 18:43:02;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Avenida Nove de Julho;1500;01312001;;;0;0;2023-08-16 18:50:36;FINALIZADA;SMSUB;;;;;
+2023-08-17 09:44:31;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Avenida Pujais Sabate;54;05365200;;;0;0;2023-08-17 09:50:36;FINALIZADA;SMSUB;;;;;
+2023-08-24 17:52:48;CHATBOT;Meio Ambiente;Árvore;Árvore ? Solicitar avaliação em calçadas e praças para fins de poda ou remoção;Rua Antônio de Bonis;020;05360210;;;0;0;2023-08-24 17:54:23;FINALIZADA;SMSUB;;;;;
+2023-09-04 15:34:50;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Visconde de Balsemão;191;03414080;;;0;0;2023-09-04 15:40:27;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:05:10;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;40;03077000;;;0;0;2023-09-12 14:10:08;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:08:07;CHATBOT;Rua e bairro;Drenagem de água de chuva;Solicitar limpeza de bueiros, boca de lobo e poços de visita;Praça da Sé;20;01001000;;;0;0;2023-09-12 14:08:14;FINALIZADA;SVMA;;;;;
+2023-09-12 14:14:13;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;400;03077000;;;0;0;2023-09-12 14:20:26;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:19:01;CHATBOT;Trânsito e Transporte;Ônibus e ponto de ônibus;Ponto de ônibus ? Solicitar manutenção, conserto e/ou limpeza de equipamento existente;Praça da Sé;401;01001000;;;0;0;2023-09-12 16:03:55;FINALIZADA;SPOBRAS;;;;;
+2023-09-12 14:22:48;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;400;03077000;;;0;0;2023-09-12 14:30:05;FINALIZADA;SMSUB;;;;;
+2023-09-18 19:23:54;CHATBOT;Trânsito e Transporte;Ônibus e ponto de ônibus;Ponto de ônibus ? Solicitar manutenção, conserto e/ou limpeza de equipamento existente;Rua Beira Rio;33;04548050;;;0;0;2023-09-18 19:34:33;FINALIZADA;SPOBRAS;;;;;
+2023-09-18 19:29:55;CHATBOT;Meio Ambiente;Árvore;Árvore ? Solicitar avaliação em calçadas e praças para fins de poda ou remoção;Rua Vicente de Oliveira;900;05359210;;;0;0;2023-09-18 19:37:11;FINALIZADA;SMSUB;;;;;
+2023-09-18 19:43:29;CHATBOT;Rua e bairro;Drenagem de água de chuva;Solicitar limpeza de bueiros, boca de lobo e poços de visita;Rua Antônio Carlos;999;01309011;;;0;0;2023-09-18 19:43:34;FINALIZADA;SVMA;;;;;
+
+2023-07-10 15:18:41;CHATBOT;Trânsito e Transporte;Veículos abandonados;Solicitar remoção de veículo/carcaça abandonado na via pública;Rua Vieira de Morais;1950;04617007;;;0;0;2023-07-29 17:33:13;EM ANDAMENTO;SMSUB;;;;;
+2023-07-14 10:54:51;CHATBOT;Cidadania e assistência social;Mulher;Denunciar violência contra mulher;Rua Líbero Badaró;84;01008000;;;0;0;2023-07-14 10:57:19;FINALIZADA;SMDHC;;;;;
+2023-08-11 15:02:37;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Visconde de Balsemão;191;03414080;;;0;0;2023-08-11 15:09:51;FINALIZADA;SMSUB;;;;;
+2023-08-16 18:43:02;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Avenida Nove de Julho;1500;01312001;;;0;0;2023-08-16 18:50:36;FINALIZADA;SMSUB;;;;;
+2023-08-17 09:44:31;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Avenida Pujais Sabate;54;05365200;;;0;0;2023-08-17 09:50:36;FINALIZADA;SMSUB;;;;;
+2023-08-24 17:52:48;CHATBOT;Meio Ambiente;Árvore;Árvore ? Solicitar avaliação em calçadas e praças para fins de poda ou remoção;Rua Antônio de Bonis;020;05360210;;;0;0;2023-08-24 17:54:23;FINALIZADA;SMSUB;;;;;
+2023-09-04 15:34:50;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Visconde de Balsemão;191;03414080;;;0;0;2023-09-04 15:40:27;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:05:10;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;40;03077000;;;0;0;2023-09-12 14:10:08;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:08:07;CHATBOT;Rua e bairro;Drenagem de água de chuva;Solicitar limpeza de bueiros, boca de lobo e poços de visita;Praça da Sé;20;01001000;;;0;0;2023-09-12 14:08:14;FINALIZADA;SVMA;;;;;
+2023-09-12 14:14:13;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;400;03077000;;;0;0;2023-09-12 14:20:26;FINALIZADA;SMSUB;;;;;
+2023-09-12 14:19:01;CHATBOT;Trânsito e Transporte;Ônibus e ponto de ônibus;Ponto de ônibus ? Solicitar manutenção, conserto e/ou limpeza de equipamento existente;Praça da Sé;401;01001000;;;0;0;2023-09-12 16:03:55;FINALIZADA;SPOBRAS;;;;;
+2023-09-12 14:22:48;CHATBOT;Rua e bairro;Reparos em asfalto, pontes e viadutos;Tapa-buraco;Rua Ulisses Cruz;400;03077000;;;0;0;2023-09-12 14:30:05;FINALIZADA;SMSUB;;;;;
+2023-09-18 19:23:54;CHATBOT;Trânsito e Transporte;Ônibus e ponto de ônibus;Ponto de ônibus ? Solicitar manutenção, conserto e/ou limpeza de equipamento existente;Rua Beira Rio;33;04548050;;;0;0;2023-09-18 19:34:33;FINALIZADA;SPOBRAS;;;;;
+2023-09-18 19:29:55;CHATBOT;Meio Ambiente;Árvore;Árvore ? Solicitar avaliação em calçadas e praças para fins de poda ou remoção;Rua Vicente de Oliveira;900;05359210;;;0;0;2023-09-18 19:37:11;FINALIZADA;SMSUB;;;;;
+2023-09-18 19:43:29;CHATBOT;Rua e bairro;Drenagem de água de chuva;Solicitar limpeza de bueiros, boca de lobo e poços de visita;Rua Antônio Carlos;999;01309011;;;0;0;2023-09-18 19:43:34;FINALIZADA;SVMA;;;;;
+
