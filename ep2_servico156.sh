@@ -36,6 +36,9 @@ NOMES_OPERACOES=(
     "sair"
 )
 
+CRIA_ARQUIVO=0
+REMOVE_ARQUIVO=1
+
 arquivo_atual="$DIR/$CODIF"
 arquivo_filtrado="linhas_validas.csv"
 
@@ -310,12 +313,33 @@ function mostra_info {
     echo "" # Acho q tem q ter essa '\n' tbm
 }
 
+function verifica_arquivo {
+
+    # Verifica se o arquivo $arquivo_filtrado existe e:
+    # $1 == 0: cria o arquivo se não existe
+    # $1 == 1: remove o arquivo se existe
+
+    if [ $1 -eq $CRIA_ARQUIVO ] && [ ! -e $arquivo_filtrado ]; then
+        filtra_linhas
+    fi
+
+    if [ $1 -eq $REMOVE_ARQUIVO ] && [ -e $arquivo_filtrado ]; then
+        rm $arquivo_filtrado
+    fi
+
+}
+
 function selecionar_arquivo {
 
+    limpar_filtros_colunas
+
     echo "Escolha uma opção de arquivo:"
-        
-    local arquivos_paths=("$DIR"/*) # vetor com todos os paths dos arquivos em "./dados/"
-    local arquivos_nomes=($(basename -a ${arquivos_paths[@]})) # vetor com os nomes dos arquivos em "./dados/"
+    
+    local arquivos_nomes=()
+
+    for arquivo in $DIR/*.csv; do
+        arquivos_nomes+=($(basename -a "$DIR/$arquivo"))
+    done
 
     enumera "${arquivos_nomes[@]}"
 
@@ -333,6 +357,8 @@ function selecionar_arquivo {
 }
 
 function adicionar_filtro_coluna {
+
+    verifica_arquivo $CRIA_ARQUIVO
 
     echo "Escolha uma opção de coluna para o filtro:"
 
@@ -353,7 +379,7 @@ function adicionar_filtro_coluna {
             valores+=("$valor")
         fi
     
-    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort | uniq)
+    done < <(cut -d';' -f${coluna} $arquivo_filtrado | sort --ignore-case | uniq)
     # done < <(head -n 1000 $arquivo_atual | tail -n +2 | cut -d';' -f${coluna} | sort | uniq)
 
     # Se n tem nenhum valor possível
@@ -384,9 +410,7 @@ function limpar_filtros_colunas {
 
     filtros=()
 
-    if [ -e $arquivo_filtrado ]; then
-        rm $arquivo_filtrado # Remove o arquivo, pra ele ser criado propriamente depois
-    fi
+    verifica_arquivo $REMOVE_ARQUIVO
 
     echo "+++ Filtros removidos"
     mostra_info
@@ -394,9 +418,7 @@ function limpar_filtros_colunas {
 
 function mostrar_duracao_media_reclamacao {
 
-    if [ ! -e $arquivo_filtrado ]; then
-        filtra_linhas
-    fi
+    verifica_arquivo $CRIA_ARQUIVO
 
     # Mostra o tempo de duração médio de uma reclamação em dias, calculado a partir da
     # diferença entre os valores das colunas "Data do Parecer" e "Data de abertura" das linhas de
@@ -450,9 +472,7 @@ function mostrar_duracao_media_reclamacao {
 
 function mostrar_ranking_reclamacoes {
 
-    if [ ! -e $arquivo_filtrado ]; then
-        filtra_linhas
-    fi
+    verifica_arquivo $CRIA_ARQUIVO
 
     IFS=';'
     local colunas=($(head -n 1 $arquivo_atual)) # Array com colunas, usa da primeira linha do arquivo
@@ -471,9 +491,7 @@ function mostrar_ranking_reclamacoes {
 
 function mostrar_reclamacoes {
 
-    if [ ! -e $arquivo_filtrado ]; then
-        filtra_linhas
-    fi
+    verifica_arquivo $CRIA_ARQUIVO
 
     cat $arquivo_filtrado
     mostra_info
@@ -481,10 +499,7 @@ function mostrar_reclamacoes {
 
 function loop_principal {
 
-    # Evita conflitos com runs ateriores
-    if [ -e $arquivo_filtrado ]; then
-        rm $arquivo_filtrado
-    fi
+    verifica_arquivo $REMOVE_ARQUIVO
 
     local opcao="0"
 
@@ -512,9 +527,7 @@ function loop_principal {
 
     done
 
-    if [ -e $arquivo_filtrado ]; then
-        rm $arquivo_filtrado
-    fi
+    verifica_arquivo $REMOVE_ARQUIVO
 
     echo -e $MENSAGEM_FINAL
     exit 0
@@ -522,7 +535,7 @@ function loop_principal {
 
 
 # Inicializa o programa, lidando com o input.
-pre_programa
+pre_programa    
 
 # Exibe as opções e funcionalidades
 loop_principal
